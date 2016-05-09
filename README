@@ -1,1 +1,4 @@
 an incomplete solver for Max-SAT problems
+implemented in Java
+inputs parameters: an instance, iteration number
+use command: java -jar example.cnf 1000
