@@ -10,4 +10,8 @@
 - Welfare Maximization in Fractional Hedonic Games.pdf
 
 ##Multiagent System
-- 
+- Efficiency and Complexity of Price Competition among Single-Product Vendors.pdf	
+- Learning Behaviors in Agents Systems with Interactive Dynamic Influence Diagrams.pdf	
+- Optimal Pricing for the Competitive and Evolutionary Cloud Market.pdf	
+- Structural Results for Cooperative Decentralized Control Models.pdf	
+- The Power of Local Manipulation Strategies in Assignment Mechanisms.pdf
