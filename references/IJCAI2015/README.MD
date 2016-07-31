@@ -1,3 +1,5 @@
+<!--add mathjax server -->
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default"></script>
 #[IJCAI2015](http://www.aaai.org/Library/IJCAI/ijcai15contents.php)
 ##Game Theory
 - Approximate Nash Equilibria with Near Optimal Social Welfare.pdf
@@ -16,8 +18,7 @@
 - The Power of Local Manipulation Strategies in Assignment Mechanisms.pdf
 
 
-<!--add mathjax server -->
-<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default"></script>
+
 # Game Theory Papers(IJCAI2015)
 
 ## Title: Tradeoffs between Incentive Mechanisms in Boolean Games
