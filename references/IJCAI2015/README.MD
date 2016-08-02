@@ -41,7 +41,7 @@ Two incentive mechanisms for Boolean games: taxation schemes and side payments. 
 *authors:Haris Aziz, Serge Gaspers Joachim, Gudmundsson, Juli´an Mestre*
 
 - ***hedonic game:*** comprises a set of agents who express preferences over coalitions they are they are present in and outcomes are partitions of the agents into disjoint coalitions. It provides a natural framework to study coalition formation.
-- ***fractional hedonic games:*** each vertex of the network can be considered as an agent. An agent \\(i's\\) valuation \\(v_i(j)\\) of an agent \\(j\\) can be represented by the weight of the directed edge \\((i,j)\\). Agent \\(i's\\) valuation of a coalition \\(S\\) of agents is the mean valuation \\(\sum_{j\in S} v_i(j)/\mid S \mid\\) of the members of \\(S\\).
+- ***fractional hedonic games:*** each vertex of the network can be considered as an agent. An agent \\(i's\\) valuation $v_i(j)$ of an agent \\(j\\) can be represented by the weight of the directed edge \\((i,j)\\). Agent \\(i's\\) valuation of a coalition \\(S\\) of agents is the mean valuation \\(\sum_{j\in S} v_i(j)/\mid S \mid\\) of the members of \\(S\\).
 
 <font color="red">**Main contributions:**</font>
 1. simple examples that show that utilitarian, egalitarian, and Nash welfare maximizing outcomes need not coincide, even in simple symmetric FHGs.
