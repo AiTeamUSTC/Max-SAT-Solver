@@ -1,7 +1,7 @@
 
 <!--add mathjax server -->
 <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default"></script>
-[TOC]
+
 # Game Theory Papers(IJCAI2015)
 
 ## Title: Tradeoffs between Incentive Mechanisms in Boolean Games
