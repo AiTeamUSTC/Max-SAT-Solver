@@ -1,7 +1,10 @@
 package cs.ustc.MaxSATsolver;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+//import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Set;
 
 
 /**
@@ -10,8 +13,12 @@ import java.util.Iterator;
  * 2016年3月5日下午8:06:07
  */
 public class IFormula {
-	private  ArrayList<IClause> clauses; //所有的clauses
-	private ILiteral[] literals; //formula的所有vars
+	private  Set<IClause> clauses; //所有的clauses
+	private ILiteral[] vars; //formula的所有vars
+	private Set<ILiteral> literals;
+	int nbVar, nbClas;
+//	Hashtable<String, Integer> relateMat;
+//	int [][] relateMat;
 
 	/**
 	 * 设置vars和clauses的容量
@@ -19,8 +26,13 @@ public class IFormula {
 	 * @param nbclauses
 	 */
 	public void setUniverse(int nbvars, int nbclauses) {
-		literals = new ILiteral[nbvars];
-		clauses = new ArrayList<>(nbclauses);
+		nbVar = nbvars;
+		nbClas = nbclauses;
+		vars = new ILiteral[nbvars];
+		clauses = new HashSet<>(nbclauses);
+		literals = new HashSet<>(nbvars*2);
+//		relateMat = new Hashtable<>();
+//		relateMat = new int[nbvars][nbvars];
 	}
 	
 	/**
@@ -28,47 +40,73 @@ public class IFormula {
 	 * @param i
 	 * @return
 	 */	
-	public ILiteral getLiteral(int i) {
+	protected ILiteral getLiteral(int i) {
 		ILiteral lit;
 		int id = Math.abs(i) - 1; // maps from 1..n to 0..n-1
-		if (literals[id] == null) {
-			literals[id] = ILiteral.createLiteral(id + 1);
+		if (vars[id] == null) {
+			vars[id] = new ILiteral(id + 1);
 		}
 		if (i > 0) {
-			lit = literals[id];
+			lit = vars[id];
 		} else {
-			lit = literals[id].opposite();
+			lit = vars[id].opposite();
 		}
 		return lit;
 	}
 	
 	/**
-	 * 通过literals添加clause
-	 * @param literals
+	 * 通过vars添加clause
+	 * @param vars
 	 */
-	public void addClause(ArrayList<ILiteral> literals) {
+	public void addClause(ArrayList<ILiteral> vars) {
 		// create the clause
-		IClause clause = new IClause(literals);
+		IClause clause = new IClause(vars);
 		clauses.add(clause);
-		for (Iterator<ILiteral> it = literals.iterator(); it.hasNext();) {
+		for (Iterator<ILiteral> it = vars.iterator(); it.hasNext();) {
 			((ILiteral)it.next()).addClause(clause);
 		}
+//		int rownb, colnb;
+//		int tmp;
+//		String subscript;
+//		for (int i = 0; i < vars.size()-1; i++) {
+//			for (int j = i+1; j < vars.size(); j++) {
+//				rownb = Math.abs(vars.get(i).id)-1;
+//				colnb = Math.abs(vars.get(j).id)-1;
+//				subscript = rownb>colnb ? (colnb+" "+rownb):(rownb+" "+colnb);
+//				if(relateMat.containsKey(subscript)){
+//					tmp = relateMat.get(subscript);
+//					relateMat.put(subscript, ++tmp);
+//				}else{
+//					relateMat.put(subscript, 1);
+//				}
+//				relateMat[rownb][colnb]++;
+//				relateMat[colnb][rownb]++;
+//			}
+//		}
 	}
 	
 	/**
-	 * get literals 
-	 * @return literals
+	 * get vars 
+	 * @return vars
 	 */
-	public ILiteral[] getLiterals(){
+	public ILiteral[] getvars(){
+		return vars;
+	}
+	public Set<ILiteral> getLiterals() {
 		return literals;
 	}
-	
 	/**
 	 * get clauses	
 	 * @return clauses
 	 */
-	public ArrayList<IClause> getClauses() {
+	public Set<IClause> getClauses() {
 		return this.clauses;
+	}
+	public void setLiterals(){
+		for (int i = 0; i < vars.length; i++) {
+			literals.add(vars[i]);
+			literals.add(vars[i].opposite);
+		}
 	}
 	
 }

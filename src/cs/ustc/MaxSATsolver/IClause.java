@@ -7,25 +7,20 @@ import java.util.ArrayList;
 
 
 public class IClause {
-	private ArrayList<ILiteral> literals;
-	public int SATNum;
+	ArrayList<ILiteral> literals;
+	boolean isSatisfied;
 	
 	public  IClause(ArrayList<ILiteral> lits) {
-		literals = lits;
-		SATNum = 0;
+		literals = new ArrayList<ILiteral>(lits);
+		isSatisfied = false;
 	}
-	
-
-	
-	/**
-	 * get literals
-	 * @return literals
-	 */
-	public ArrayList<ILiteral> getLiterals() {
-		return literals;
-	}
-	
-	public boolean contains(ILiteral literal) {
-		return literals.contains(literal);
+	public String toString(){
+		StringBuffer sb = new StringBuffer();
+		sb.append("[ ");
+		for(ILiteral lit: literals){
+			sb.append(lit.id+" ");
+		}
+		sb.append("] "+isSatisfied);
+		return sb.toString();
 	}
 }

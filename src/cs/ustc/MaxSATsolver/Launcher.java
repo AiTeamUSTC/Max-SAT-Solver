@@ -4,71 +4,97 @@ package cs.ustc.MaxSATsolver;
  * @author ccding  2016年3月7日 上午8:39:11
  */
 
-import java.io.IOException;
 
-import cs.ustc.BGModel.Agent;
-import cs.ustc.BGModel.Game;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+import org.jgraph.graph.DefaultEdge;
+import org.jgrapht.UndirectedGraph;
+import org.jgrapht.graph.SimpleGraph;
 
 
 public class Launcher {
-	/**
-	 * 
-	 * @param args 控制台输入解决的实例和迭代的次数
-	 * @throws IOException
-	 * @throws ParseFormatException
-	 */
+
 	public static void main(String[] args) throws IOException, ParseFormatException{
 		long begin = System.currentTimeMillis();
 		IFormula formula = new IFormula();
+		Set<Set<ILiteral>> groupsSets = new HashSet<>();
 		CNFFileReader cnfFileReader = new CNFFileReader();
 		String filename = args[0];
-		//从cnf文件中读取信息
 		System.out.println("file reading...");
+		//instance cnf file to formula
 		cnfFileReader.parseInstance(filename, formula);
-		//将maxsat问题映射到boolean game model
-		System.out.println("constructing...");
-		Game game = new Game(formula);
-		game.setAgentsInfo();
-		System.out.println("processing...");
-		for (Agent agent : game.getAgents()) {
-			agent.findBestOfAction();
-		}
-		game.calSATRate();
-		System.out.println(game.satClausesCount);
-		@SuppressWarnings("unused")
-		ILiteral[] bestStragety = game.strategy;
-		int maxSatClausesNum = game.satClausesCount;
-		int round;
-		if (args[1]!=null) {
-			round = Integer.parseInt(args[1]);
-		}else {
-			round = 1000;
+		formula.setLiterals();
+		
+		String osType = System.getProperty("os.name");
+		String fileName;
+		String lf;
+		if(osType.startsWith("Windows")){
+			fileName = "D:\results.txt";
+			lf = "\n\r";
+		}else{
+			fileName = "/Users/chenchen/Documents/graph.txt";
+			lf = "\n";
 		}
 		
-		float initSATRate = game.getSatRate();
-		int repeatLimit = 0;
-		while(--round != 0 ){
-			game.agentUpdateActionNoAnnouncement();
-			game.calSATRate();
-			if (initSATRate >= game.getSatRate()) {
-				repeatLimit++;
-				if (repeatLimit>100) {
-					break;
+		FileWriter fw = new FileWriter(new File(fileName));
+		
+		UndirectedGraph<ILiteral, DefaultEdge> graph;
+		Set<ILiteral> inSet ;
+		int itNum = 100;
+		while((itNum--)!=0){
+			//map to an undirected graph
+			graph = new SimpleGraph<>(DefaultEdge.class);
+			GraphTool.transFormulaToGraph(graph, formula);
+//			fw.write(graph.edgeSet().toString());
+//			JFrame frame = new JFrame();
+//			GraphTool.paintGraph(frame, graph);
+//			frame.getContentPane().removeAll();
+			fw.write("litNum:"+formula.getLiterals().size()+
+					" clasNum:"+formula.getClauses().size()+lf);
+			fw.write("VexNum:"+graph.vertexSet().size()+
+					" edgesNum:"+graph.edgeSet().size()+lf);
+			fw.write(lf);
+			inSet = GraphTool.findIndependentSet(graph);
+			Set<ILiteral> conflictLits = new HashSet<>();
+			ILiteral delILiteral;
+			for (ILiteral literal : inSet) {
+				if (inSet.contains(literal.opposite)&&
+					!(conflictLits.contains(literal)||conflictLits.contains(literal.opposite))
+					) {
+					delILiteral = literal.getClauses().size()>
+								  literal.opposite.getClauses().size()?
+								  literal : literal.opposite;
+					conflictLits.add(delILiteral);
+					fw.write(lf+"remove "+delILiteral.id+lf);
 				}
-			}else{
-				bestStragety = game.strategy;
-				maxSatClausesNum = game.satClausesCount;
-				System.out.println(game.satClausesCount);
-				initSATRate = game.getSatRate();
-				repeatLimit = 0;
 			}
-		
+			inSet.removeAll(conflictLits);
+			if (inSet.isEmpty()) {
+				break;
+			}
+			groupsSets.add(inSet);
+			fw.write("inSetSize: "+inSet.size()+lf);
+			formula.getLiterals().removeAll(inSet);
+			for (ILiteral lit : inSet) {
+				fw.write(lit.toString());
+				fw.write(lf);
+				for (IClause c : lit.getClauses()) {
+					fw.write(c.toString());
+					c.isSatisfied = true;
+				}
+				fw.write(lf);
+				formula.getClauses().removeAll(lit.getClauses());
+			}
+			fw.write("----------------------------");
 		}
-		System.out.println("Instance: "+args[0]);
-		game.satClausesCount = maxSatClausesNum;
-		System.out.println(game.getGameInfo());
+		
 		long time = System.currentTimeMillis()-begin;
-		System.out.println("time :"+time/1000+" s");
+		fw.close();
+		
+		System.out.println("time:"+time);
 		
 	}
 }

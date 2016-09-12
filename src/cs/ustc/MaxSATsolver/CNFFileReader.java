@@ -87,12 +87,12 @@ public class CNFFileReader {
 		ILiteral literal;
 		int realNbOfClauses = 0;
 		
-		ILiteral[] voc = formula.getLiterals();
+		ILiteral[] voc = formula.getvars();
 		ArrayList<ILiteral> literals = new ArrayList<ILiteral>(3);
 
 		nbVars = voc.length;
 		assert nbVars != 0;
-
+		int ll = 0;
 		while (true) {
 			line = in.readLine();
 			if (line == null) {
@@ -118,6 +118,7 @@ public class CNFFileReader {
 					formula.addClause(literals);
 					literals.clear();
 					realNbOfClauses++;
+					System.out.println(ll++);
 				}
 			}
 		}
