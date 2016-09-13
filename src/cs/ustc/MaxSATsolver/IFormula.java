@@ -17,6 +17,7 @@ public class IFormula {
 	private ILiteral[] vars; //formula的所有vars
 	private Set<ILiteral> literals;
 	int nbVar, nbClas;
+	int unsatClasNum;
 //	Hashtable<String, Integer> relateMat;
 //	int [][] relateMat;
 

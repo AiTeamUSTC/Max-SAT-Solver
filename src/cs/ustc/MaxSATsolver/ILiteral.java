@@ -14,6 +14,7 @@ public class ILiteral {
 	ILiteral opposite; 
 	final int id;
 	boolean forbid;
+	boolean unit;
 
 	
 	/**
@@ -47,13 +48,13 @@ public class ILiteral {
     public void addClause(IClause clause){
     	this.clauses.add(clause);
     }
-
+    
     
     public ILiteral opposite() {
 		return opposite;
 	}
     
-    public ArrayList<IClause> getClauses() {
+    public ArrayList<IClause> getClas() {
 		return clauses;
 	}
     public String toString(){

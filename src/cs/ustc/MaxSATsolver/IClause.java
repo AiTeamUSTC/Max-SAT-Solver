@@ -8,11 +8,11 @@ import java.util.ArrayList;
 
 public class IClause {
 	ArrayList<ILiteral> literals;
-	boolean isSatisfied;
+	int unsatLitsNum;
 	
 	public  IClause(ArrayList<ILiteral> lits) {
 		literals = new ArrayList<ILiteral>(lits);
-		isSatisfied = false;
+		unsatLitsNum = 0;
 	}
 	public String toString(){
 		StringBuffer sb = new StringBuffer();
@@ -20,7 +20,7 @@ public class IClause {
 		for(ILiteral lit: literals){
 			sb.append(lit.id+" ");
 		}
-		sb.append("] "+isSatisfied);
+		sb.append("] "+unsatLitsNum);
 		return sb.toString();
 	}
 }

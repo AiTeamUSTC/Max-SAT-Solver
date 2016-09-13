@@ -10,6 +10,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+
 import org.jgraph.graph.DefaultEdge;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.graph.SimpleGraph;
@@ -20,11 +21,11 @@ public class Launcher {
 	public static void main(String[] args) throws IOException, ParseFormatException{
 		long begin = System.currentTimeMillis();
 		IFormula formula = new IFormula();
-		Set<Set<ILiteral>> groupsSets = new HashSet<>();
+		Set<Group> groupsSet = new HashSet<>();
 		CNFFileReader cnfFileReader = new CNFFileReader();
 		String filename = args[0];
 		System.out.println("file reading...");
-		//instance cnf file to formula
+		//map cnf file to formula
 		cnfFileReader.parseInstance(filename, formula);
 		formula.setLiterals();
 		
@@ -32,8 +33,8 @@ public class Launcher {
 		String fileName;
 		String lf;
 		if(osType.startsWith("Windows")){
-			fileName = "D:\results.txt";
-			lf = "\n\r";
+			fileName = "D:\\results.txt";
+			lf = "\r\n";
 		}else{
 			fileName = "/Users/chenchen/Documents/graph.txt";
 			lf = "\n";
@@ -42,59 +43,47 @@ public class Launcher {
 		FileWriter fw = new FileWriter(new File(fileName));
 		
 		UndirectedGraph<ILiteral, DefaultEdge> graph;
-		Set<ILiteral> inSet ;
-		int itNum = 100;
-		while((itNum--)!=0){
-			//map to an undirected graph
-			graph = new SimpleGraph<>(DefaultEdge.class);
-			GraphTool.transFormulaToGraph(graph, formula);
-//			fw.write(graph.edgeSet().toString());
+		Group group = new Group();
+		Set<IClause> unitClas = new HashSet<IClause>();
+		//map to an undirected graph
+		graph = new SimpleGraph<>(DefaultEdge.class);
+		GraphTool.transFormulaToGraph(graph, formula);
+		while(true){
 //			JFrame frame = new JFrame();
 //			GraphTool.paintGraph(frame, graph);
 //			frame.getContentPane().removeAll();
-			fw.write("litNum:"+formula.getLiterals().size()+
-					" clasNum:"+formula.getClauses().size()+lf);
-			fw.write("VexNum:"+graph.vertexSet().size()+
-					" edgesNum:"+graph.edgeSet().size()+lf);
-			fw.write(lf);
-			inSet = GraphTool.findIndependentSet(graph);
-			Set<ILiteral> conflictLits = new HashSet<>();
-			ILiteral delILiteral;
-			for (ILiteral literal : inSet) {
-				if (inSet.contains(literal.opposite)&&
-					!(conflictLits.contains(literal)||conflictLits.contains(literal.opposite))
-					) {
-					delILiteral = literal.getClauses().size()>
-								  literal.opposite.getClauses().size()?
-								  literal : literal.opposite;
-					conflictLits.add(delILiteral);
-					fw.write(lf+"remove "+delILiteral.id+lf);
-				}
+			
+			for(IClause c: unitClas){
+				group.agents.addAll(c.literals);
 			}
-			inSet.removeAll(conflictLits);
-			if (inSet.isEmpty()) {
+			unitClas.clear();	
+			
+			group.agents.addAll(GraphTool.findIndependentSet(graph));
+//			group.addAll(VertexCovers.findGreedyCover(graph));
+			
+			group.rmConflictAgents();
+			
+			//jump out while loop
+			if (group.agents.isEmpty()) {
 				break;
 			}
-			groupsSets.add(inSet);
-			fw.write("inSetSize: "+inSet.size()+lf);
-			formula.getLiterals().removeAll(inSet);
-			for (ILiteral lit : inSet) {
-				fw.write(lit.toString());
-				fw.write(lf);
-				for (IClause c : lit.getClauses()) {
-					fw.write(c.toString());
-					c.isSatisfied = true;
-				}
-				fw.write(lf);
-				formula.getClauses().removeAll(lit.getClauses());
-			}
-			fw.write("----------------------------");
+			group.setAgentAttr(unitClas);
+			groupsSet.add(group);
+			//delete vertices that in independent set
+			graph.removeAllVertices(group.agents);
+
 		}
 		
-		long time = System.currentTimeMillis()-begin;
+		
+		for(IClause c: formula.getClauses()){
+			if(c.unsatLitsNum == c.literals.size()){
+				formula.unsatClasNum++;
+				fw.write(c.toString());
+			}
+		}
+		System.out.println("unsat clas num: "+formula.unsatClasNum);
 		fw.close();
-		
+		long time = System.currentTimeMillis()-begin;
 		System.out.println("time:"+time);
-		
-	}
+	}	
 }

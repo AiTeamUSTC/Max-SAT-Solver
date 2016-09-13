@@ -44,12 +44,10 @@ public class GraphTool {
 		//iterate all clauses add edges
 		for (IClause c:formula.getClauses()) {
 			//if clause c is satisfied, need not consider 
-			if(!c.isSatisfied){
-				tmpArrList = c.literals;
-				for (int i = 0; i < tmpArrList.size()-1; i++) {
-					for (int j = i+1; j < tmpArrList.size(); j++) {
-						graph.addEdge(tmpArrList.get(i), tmpArrList.get(j));
-					}
+			tmpArrList = c.literals;
+			for (int i = 0; i < tmpArrList.size()-1; i++) {
+				for (int j = i+1; j < tmpArrList.size(); j++) {
+					graph.addEdge(tmpArrList.get(i), tmpArrList.get(j));
 				}
 			}
 			
