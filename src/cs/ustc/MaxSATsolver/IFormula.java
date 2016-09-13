@@ -16,6 +16,7 @@ public class IFormula {
 	private  Set<IClause> clauses; //所有的clauses
 	private ILiteral[] vars; //formula的所有vars
 	private Set<ILiteral> literals;
+	Set<IClause> unsatClas;
 	int nbVar, nbClas;
 	int unsatClasNum;
 //	Hashtable<String, Integer> relateMat;
@@ -32,6 +33,7 @@ public class IFormula {
 		vars = new ILiteral[nbvars];
 		clauses = new HashSet<>(nbclauses);
 		literals = new HashSet<>(nbvars*2);
+		unsatClas = new HashSet<>();
 //		relateMat = new Hashtable<>();
 //		relateMat = new int[nbvars][nbvars];
 	}
@@ -105,8 +107,10 @@ public class IFormula {
 	}
 	public void setLiterals(){
 		for (int i = 0; i < vars.length; i++) {
-			literals.add(vars[i]);
-			literals.add(vars[i].opposite);
+			if(vars[i]!=null){
+				literals.add(vars[i]);
+				literals.add(vars[i].opposite);
+			}
 		}
 	}
 	

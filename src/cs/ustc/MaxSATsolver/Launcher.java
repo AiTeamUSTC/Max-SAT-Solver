@@ -74,13 +74,19 @@ public class Launcher {
 
 		}
 		
-		
 		for(IClause c: formula.getClauses()){
 			if(c.unsatLitsNum == c.literals.size()){
 				formula.unsatClasNum++;
-				fw.write(c.toString());
+				formula.unsatClas.add(c);
 			}
 		}
+		
+		
+		
+		
+		
+		
+		
 		System.out.println("unsat clas num: "+formula.unsatClasNum);
 		fw.close();
 		long time = System.currentTimeMillis()-begin;
