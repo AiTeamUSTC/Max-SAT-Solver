@@ -19,8 +19,6 @@ public class IFormula {
 	Set<IClause> unsatClas;
 	int nbVar, nbClas;
 	int unsatClasNum;
-//	Hashtable<String, Integer> relateMat;
-//	int [][] relateMat;
 
 	/**
 	 * 设置vars和clauses的容量
@@ -34,8 +32,6 @@ public class IFormula {
 		clauses = new HashSet<>(nbclauses);
 		literals = new HashSet<>(nbvars*2);
 		unsatClas = new HashSet<>();
-//		relateMat = new Hashtable<>();
-//		relateMat = new int[nbvars][nbvars];
 	}
 	
 	/**
@@ -61,31 +57,15 @@ public class IFormula {
 	 * 通过vars添加clause
 	 * @param vars
 	 */
-	public void addClause(ArrayList<ILiteral> vars) {
+	public void addClause(ArrayList<ILiteral> lits) {
 		// create the clause
-		IClause clause = new IClause(vars);
+		IClause clause = new IClause(lits);
 		clauses.add(clause);
-		for (Iterator<ILiteral> it = vars.iterator(); it.hasNext();) {
-			((ILiteral)it.next()).addClause(clause);
-		}
-//		int rownb, colnb;
-//		int tmp;
-//		String subscript;
-//		for (int i = 0; i < vars.size()-1; i++) {
-//			for (int j = i+1; j < vars.size(); j++) {
-//				rownb = Math.abs(vars.get(i).id)-1;
-//				colnb = Math.abs(vars.get(j).id)-1;
-//				subscript = rownb>colnb ? (colnb+" "+rownb):(rownb+" "+colnb);
-//				if(relateMat.containsKey(subscript)){
-//					tmp = relateMat.get(subscript);
-//					relateMat.put(subscript, ++tmp);
-//				}else{
-//					relateMat.put(subscript, 1);
-//				}
-//				relateMat[rownb][colnb]++;
-//				relateMat[colnb][rownb]++;
-//			}
-//		}
+		for (ILiteral lit : lits) {
+			lit.addClause(clause);
+			lit.neighbors.addAll(lits);
+			lit.neighbors.remove(lit);
+		} 
 	}
 	
 	/**

@@ -1,6 +1,7 @@
 package cs.ustc.MaxSATsolver;
 
-import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 
 /**
@@ -10,7 +11,8 @@ import java.util.ArrayList;
  */
 
 public class ILiteral {
-	private final ArrayList<IClause> clauses; //含有该literal的所有clauses
+	private final Set<IClause> clauses; //含有该literal的所有clauses
+	Set<ILiteral> neighbors;
 	ILiteral opposite; 
 	final int id;
 	boolean forbid;
@@ -26,7 +28,8 @@ public class ILiteral {
 		if (this.opposite == null) {
 			this.opposite = new ILiteral(this);
 		}
-		clauses = new ArrayList<>();
+		clauses = new HashSet<>();
+		neighbors = new HashSet<>();
 	}
 	
 	 /**
@@ -38,7 +41,7 @@ public class ILiteral {
         id = -opposite.id;
         this.opposite = opposite;
         opposite.opposite = this;
-        clauses = new ArrayList<>();
+        clauses = new HashSet<>();
     }
     
     /**
@@ -54,7 +57,7 @@ public class ILiteral {
 		return opposite;
 	}
     
-    public ArrayList<IClause> getClas() {
+    public Set<IClause> getClas() {
 		return clauses;
 	}
     public String toString(){
