@@ -9,10 +9,12 @@ import java.util.ArrayList;
 public class IClause {
 	ArrayList<ILiteral> literals;
 	int unsatLitsNum;
+	int hardCoef;
 	
 	public  IClause(ArrayList<ILiteral> lits) {
 		literals = new ArrayList<ILiteral>(lits);
 		unsatLitsNum = 0;
+		hardCoef = 0;
 	}
 	public String toString(){
 		StringBuffer sb = new StringBuffer();

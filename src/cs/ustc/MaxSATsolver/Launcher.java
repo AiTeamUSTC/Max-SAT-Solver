@@ -11,9 +11,6 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.jgraph.graph.DefaultEdge;
-import org.jgrapht.UndirectedGraph;
-import org.jgrapht.graph.SimpleGraph;
 
 
 public class Launcher {
@@ -27,7 +24,6 @@ public class Launcher {
 		System.out.println("file reading...");
 		//map cnf file to formula
 		cnfFileReader.parseInstance(filename, formula);
-		formula.setLiterals();
 		
 		String osType = System.getProperty("os.name");
 		String fileName;
@@ -42,24 +38,9 @@ public class Launcher {
 		
 		FileWriter fw = new FileWriter(new File(fileName));
 		
-		UndirectedGraph<ILiteral, DefaultEdge> graph;
 		Group group = new Group();
-		Set<IClause> unitClas = new HashSet<IClause>();
-		//map to an undirected graph
-		graph = new SimpleGraph<>(DefaultEdge.class);
-		GraphTool.transFormulaToGraph(graph, formula);
 		while(true){
-//			JFrame frame = new JFrame();
-//			GraphTool.paintGraph(frame, graph);
-//			frame.getContentPane().removeAll();
-			
-			for(IClause c: unitClas){
-				group.agents.addAll(c.literals);
-			}
-			unitClas.clear();	
-			
-			group.agents.addAll(GraphTool.findIndependentSet(graph));
-//			group.addAll(VertexCovers.findGreedyCover(graph));
+			group.agents.addAll(formula.getIndependentSet());
 			
 			group.rmConflictAgents();
 			
@@ -67,11 +48,13 @@ public class Launcher {
 			if (group.agents.isEmpty()) {
 				break;
 			}
-			group.setAgentAttr(unitClas);
+			
+			group.setAgentAttr();
 			groupsSet.add(group);
-			//delete vertices that in independent set
-			graph.removeAllVertices(group.agents);
-
+			
+			
+			formula.visitedLits.addAll(group.agents);
+			formula.getLiterals().removeAll(group.agents);
 		}
 		
 		for(IClause c: formula.getClauses()){

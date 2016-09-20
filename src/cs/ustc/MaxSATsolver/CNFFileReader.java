@@ -141,6 +141,7 @@ public class CNFFileReader {
 			skipComments(in);
 			readProblemLine(in, formula);
 			readClauses(in, formula);
+			formula.setLiterals();
 		} catch (IOException e) {
 			throw new ParseFormatException(e);
 		} catch (NumberFormatException e) {

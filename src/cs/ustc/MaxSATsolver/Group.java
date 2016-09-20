@@ -20,20 +20,9 @@ public class Group {
 				//group contains lit and lit.opposite(conflict), must delete lit or lit.opposite
 				if (agents.contains(ag.opposite)&&
 						!(conflictAgs.contains(ag)||conflictAgs.contains(ag.opposite))) 
-					{
-						//if lit in unit clause, it must be satisfied, so delete lit.opposite
-						if(ag.unit){
-							delAg = ag.opposite;
-						}
-						//on the contrary
-						else if(ag.opposite.unit){
-							delAg = ag;
-						}
-						//else delete literal that relate to  less clas
-						else{	
-							delAg = ag.getClas().size()>ag.opposite.getClas().size() ?
-									ag : ag.opposite;
-						}
+					{	
+						delAg = ag.getClas().size()>ag.opposite.getClas().size() ?
+								ag : ag.opposite;
 						conflictAgs.add(delAg);
 					}
 			}
@@ -43,7 +32,7 @@ public class Group {
 		conflictAgs.clear();
 	}
 	
-	public void setAgentAttr(Set<IClause> unitClas){
+	public void setAgentAttr(){
 		for (ILiteral lit : agents) {
 			lit.forbid = true;
 			lit.opposite.forbid = true;
@@ -52,14 +41,6 @@ public class Group {
 			}
 			for(IClause c: lit.opposite.getClas()){
 				c.unsatLitsNum++;
-				if(c.unsatLitsNum == c.literals.size()-1){
-					for(ILiteral lit2 : c.literals){
-						if(!lit2.forbid){
-							lit2.unit = true;
-						}
-					}
-					unitClas.add(c);
-				}
 			}
 		}
 	}

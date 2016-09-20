@@ -1,9 +1,8 @@
 package cs.ustc.MaxSATsolver;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
-//import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Set;
 
 
@@ -13,10 +12,11 @@ import java.util.Set;
  * 2016年3月5日下午8:06:07
  */
 public class IFormula {
-	private  Set<IClause> clauses; //所有的clauses
+	private  ArrayList<IClause> clauses; //所有的clauses
 	private ILiteral[] vars; //formula的所有vars
-	private Set<ILiteral> literals;
-	Set<IClause> unsatClas;
+	private ArrayList<ILiteral> literals;
+	ArrayList<IClause> unsatClas;
+	ArrayList<ILiteral> visitedLits;
 	int nbVar, nbClas;
 	int unsatClasNum;
 
@@ -29,9 +29,10 @@ public class IFormula {
 		nbVar = nbvars;
 		nbClas = nbclauses;
 		vars = new ILiteral[nbvars];
-		clauses = new HashSet<>(nbclauses);
-		literals = new HashSet<>(nbvars*2);
-		unsatClas = new HashSet<>();
+		clauses = new ArrayList<>(nbclauses);
+		literals = new ArrayList<>(nbvars*2);
+		unsatClas = new ArrayList<>();
+		visitedLits = new ArrayList<>();
 	}
 	
 	/**
@@ -65,6 +66,7 @@ public class IFormula {
 			lit.addClause(clause);
 			lit.neighbors.addAll(lits);
 			lit.neighbors.remove(lit);
+			lit.degree = lit.neighbors.size();
 		} 
 	}
 	
@@ -75,16 +77,19 @@ public class IFormula {
 	public ILiteral[] getvars(){
 		return vars;
 	}
-	public Set<ILiteral> getLiterals() {
+	public ArrayList<ILiteral> getLiterals() {
 		return literals;
 	}
 	/**
 	 * get clauses	
 	 * @return clauses
 	 */
-	public Set<IClause> getClauses() {
+	public ArrayList<IClause> getClauses() {
 		return this.clauses;
 	}
+	/**
+	 * set literals
+	 */
 	public void setLiterals(){
 		for (int i = 0; i < vars.length; i++) {
 			if(vars[i]!=null){
@@ -92,6 +97,22 @@ public class IFormula {
 				literals.add(vars[i].opposite);
 			}
 		}
+	}
+	
+	public ArrayList<ILiteral> getIndependentSet(){
+		Collections.sort(literals);
+		ArrayList<ILiteral> vertexCover = new ArrayList<>();
+		Set<IClause> coverEdges = new HashSet<>();
+		ArrayList<ILiteral> independentSet = new ArrayList<>(literals);
+		for(int i=0; i<literals.size(); i++){
+			vertexCover.add(literals.get(i));
+			coverEdges.addAll(literals.get(i).getClas());
+			if(coverEdges.size()==clauses.size())
+				break;
+		}
+		independentSet.removeAll(vertexCover);
+		return independentSet;
+		
 	}
 	
 }

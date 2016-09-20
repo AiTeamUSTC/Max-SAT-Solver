@@ -10,13 +10,14 @@ import java.util.Set;
  * 2016年3月5日下午8:51:47
  */
 
-public class ILiteral {
+public class ILiteral implements Comparable<ILiteral>{
 	private final Set<IClause> clauses; //含有该literal的所有clauses
 	Set<ILiteral> neighbors;
+	int degree;
 	ILiteral opposite; 
 	final int id;
+	int weight;
 	boolean forbid;
-	boolean unit;
 
 	
 	/**
@@ -30,6 +31,7 @@ public class ILiteral {
 		}
 		clauses = new HashSet<>();
 		neighbors = new HashSet<>();
+		weight = 0;
 	}
 	
 	 /**
@@ -42,6 +44,8 @@ public class ILiteral {
         this.opposite = opposite;
         opposite.opposite = this;
         clauses = new HashSet<>();
+        neighbors = new HashSet<>();
+        weight = 0;
     }
     
     /**
@@ -63,4 +67,10 @@ public class ILiteral {
     public String toString(){
     	return id+" ";
     }
+
+	@Override
+	public int compareTo(ILiteral lit) {
+		// TODO Auto-generated method stub
+		return (weight-degree) - (lit.weight-lit.degree);
+	}
 }
