@@ -1,5 +1,6 @@
 package cs.ustc.MaxSATsolver;
 
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -12,13 +13,12 @@ import java.util.Set;
  * 2016年3月5日下午8:06:07
  */
 public class IFormula {
-	private  ArrayList<IClause> clauses; //所有的clauses
+	private  List<IClause> clauses; //所有的clauses
 	private ILiteral[] vars; //formula的所有vars
-	private ArrayList<ILiteral> literals;
-	ArrayList<IClause> unsatClas;
-	ArrayList<ILiteral> visitedLits;
+	private List<ILiteral> literals;
+	Set<ILiteral> visitedLits;
+	Set<IClause> visitedClas;
 	int nbVar, nbClas;
-	int unsatClasNum;
 
 	/**
 	 * 设置vars和clauses的容量
@@ -31,8 +31,9 @@ public class IFormula {
 		vars = new ILiteral[nbvars];
 		clauses = new ArrayList<>(nbclauses);
 		literals = new ArrayList<>(nbvars*2);
-		unsatClas = new ArrayList<>();
-		visitedLits = new ArrayList<>();
+		visitedLits = new HashSet<>();
+		visitedClas = new HashSet<>();
+		
 	}
 	
 	/**
@@ -77,14 +78,14 @@ public class IFormula {
 	public ILiteral[] getvars(){
 		return vars;
 	}
-	public ArrayList<ILiteral> getLiterals() {
+	public List<ILiteral> getLiterals() {
 		return literals;
 	}
 	/**
 	 * get clauses	
 	 * @return clauses
 	 */
-	public ArrayList<IClause> getClauses() {
+	public List<IClause> getClauses() {
 		return this.clauses;
 	}
 	/**
@@ -99,11 +100,17 @@ public class IFormula {
 		}
 	}
 	
-	public ArrayList<ILiteral> getIndependentSet(){
+	/**
+	 * get independent set 
+	 * first, find vertexes set covers all edges
+	 * then, the complementary set of all vertexes is independent set
+	 * @return independent set
+	 */
+	public Set<ILiteral> getIndependentSet(){
 		Collections.sort(literals);
-		ArrayList<ILiteral> vertexCover = new ArrayList<>();
+		List<ILiteral> vertexCover = new ArrayList<>();
 		Set<IClause> coverEdges = new HashSet<>();
-		ArrayList<ILiteral> independentSet = new ArrayList<>(literals);
+		Set<ILiteral> independentSet = new HashSet<>(literals);
 		for(int i=0; i<literals.size(); i++){
 			vertexCover.add(literals.get(i));
 			coverEdges.addAll(literals.get(i).getClas());
@@ -113,6 +120,20 @@ public class IFormula {
 		independentSet.removeAll(vertexCover);
 		return independentSet;
 		
+	}
+	
+	public void reset(){
+		clauses.addAll(visitedClas);
+		visitedClas.clear();
+		literals.addAll(visitedLits);
+		visitedLits.clear();
+		for(ILiteral l: literals){
+			l.forbid = false;
+			l.degree = l.neighbors.size();
+		}
+		for(IClause c: clauses){
+			c.unsatLitsNum = 0;
+		}
 	}
 	
 }

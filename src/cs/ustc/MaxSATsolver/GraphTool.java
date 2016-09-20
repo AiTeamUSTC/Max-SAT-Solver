@@ -1,7 +1,7 @@
 package cs.ustc.MaxSATsolver;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.swing.JFrame;
@@ -35,7 +35,7 @@ public class GraphTool {
 	 * @param formula
 	 */
 	public static void transFormulaToGraph(UndirectedGraph<ILiteral, DefaultEdge> graph, IFormula formula){
-		ArrayList<ILiteral> tmpArrList;
+		List<ILiteral> tmpArrList;
 		//vertex is the literals 1..nbVar
 		for (Iterator<ILiteral> it = formula.getLiterals().iterator(); it.hasNext();) {
 			graph.addVertex(it.next());

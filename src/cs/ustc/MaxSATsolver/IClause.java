@@ -1,13 +1,14 @@
 package cs.ustc.MaxSATsolver;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 
 
 
 public class IClause {
-	ArrayList<ILiteral> literals;
+	List<ILiteral> literals;
 	int unsatLitsNum;
 	int hardCoef;
 	
@@ -23,6 +24,7 @@ public class IClause {
 			sb.append(lit.id+" ");
 		}
 		sb.append("] "+unsatLitsNum);
+		sb.append(" "+hardCoef);
 		return sb.toString();
 	}
 }

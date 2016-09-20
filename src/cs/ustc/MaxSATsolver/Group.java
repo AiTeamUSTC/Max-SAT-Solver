@@ -1,12 +1,14 @@
 package cs.ustc.MaxSATsolver;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.Vector;
 
 public class Group {
-	Set<ILiteral> agents;
+	List<ILiteral> agents;
 	public Group(){
-		agents = new HashSet<ILiteral>();
+		agents = new Vector<ILiteral>();
 	}
 	
 	public void rmConflictAgents(){
@@ -38,6 +40,8 @@ public class Group {
 			lit.opposite.forbid = true;
 			for(IClause c : lit.getClas()) {
 				c.unsatLitsNum--;
+				for(ILiteral l : c.literals)
+					l.degree--;
 			}
 			for(IClause c: lit.opposite.getClas()){
 				c.unsatLitsNum++;
