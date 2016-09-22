@@ -1,8 +1,6 @@
 package cs.ustc.MaxSATsolver;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 
@@ -15,8 +13,10 @@ import java.util.Set;
 
 public class ILiteral implements Comparable<ILiteral>{
 	private final Set<IClause> clauses; //含有该literal的所有clauses
+	Set<IClause> visitedClas;
 	Set<ILiteral> neighbors;
 	int degree;
+	int initDegree;
 	ILiteral opposite; 
 	final int id;
 	int weight;
@@ -34,6 +34,7 @@ public class ILiteral implements Comparable<ILiteral>{
 		}
 		clauses = new HashSet<>();
 		neighbors = new HashSet<>();
+		visitedClas = new HashSet<>();
 		weight = 0;
 	}
 	
@@ -48,6 +49,7 @@ public class ILiteral implements Comparable<ILiteral>{
         opposite.opposite = this;
         clauses = new HashSet<>();
         neighbors = new HashSet<>();
+        visitedClas = new HashSet<>();
         weight = 0;
     }
     
@@ -68,12 +70,33 @@ public class ILiteral implements Comparable<ILiteral>{
 		return clauses;
 	}
     public String toString(){
-    	return id+" ";
+    	return id+" "+weight+"  ";
+    }
+    
+    public double getWeightCoef(){
+    	int tmp = weight + degree;
+    	if(tmp==0)
+    		tmp=1;
+    	return (double)weight/(double)(weight+degree);
+    }
+    
+    public double getDegreeCoef(){
+    	int tmp = weight + degree;
+    	if(tmp==0)
+    		tmp=1;
+    	return (double)degree/(double)(weight+degree);
     }
 
 	@Override
 	public int compareTo(ILiteral lit) {
 		// TODO Auto-generated method stub
-		return (weight-degree) - (lit.weight-lit.degree);
+		double res = (this.getWeightCoef()*this.weight-this.getDegreeCoef()*this.degree)
+				- (lit.getWeightCoef()*lit.weight-lit.getDegreeCoef()*lit.degree);
+//		double res = (this.weight-this.degree)- (lit.weight-lit.degree);
+		if(res == 0){
+			return 0;
+		}else{
+			return res>0 ? 1 : -1;
+		}
 	}
 }

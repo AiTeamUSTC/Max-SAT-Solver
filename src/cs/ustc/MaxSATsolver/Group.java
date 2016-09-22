@@ -11,7 +11,7 @@ public class Group {
 		agents = new Vector<ILiteral>();
 	}
 	
-	public void rmConflictAgents(){
+	public void removeConflictAgents(){
 		Set<ILiteral> conflictAgs = new HashSet<>();
 		ILiteral delAg;//delete literal
 		for (ILiteral ag : agents) {
@@ -34,15 +34,25 @@ public class Group {
 		conflictAgs.clear();
 	}
 	
-	public void setAgentAttr(){
-		for (ILiteral lit : agents) {
-			lit.forbid = true;
-			lit.opposite.forbid = true;
+	public void setGroupAttr(){
+		for (ILiteral lit : agents) { 
 			for(IClause c : lit.getClas()) {
 				c.unsatLitsNum--;
-				for(ILiteral l : c.literals)
-					l.degree--;
+				for(ILiteral l : c.literals){
+					//对 clause c 中所有 lits 通知  c 已满足
+					if(l.equals(lit))
+						// lit 本身无需处理
+						continue;
+					l.visitedClas.add(c);
+					l.getClas().remove(c);
+					l.degree -= 2;
+				}
 			}
+			//move all clas to visitedClas 
+			lit.visitedClas.addAll(lit.getClas());
+			lit.getClas().clear();
+			lit.forbid = true;
+			lit.opposite.forbid = true;
 			for(IClause c: lit.opposite.getClas()){
 				c.unsatLitsNum++;
 			}

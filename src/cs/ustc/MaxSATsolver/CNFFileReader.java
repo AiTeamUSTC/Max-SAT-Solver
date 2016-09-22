@@ -92,7 +92,7 @@ public class CNFFileReader {
 
 		nbVars = voc.length;
 		assert nbVars != 0;
-		int ll = 0;
+//		int ll = 0;
 		while (true) {
 			line = in.readLine();
 			if (line == null) {
@@ -118,7 +118,7 @@ public class CNFFileReader {
 					formula.addClause(literals);
 					literals.clear();
 					realNbOfClauses++;
-					System.out.println(ll++);
+//					System.out.println(ll++);
 				}
 			}
 		}

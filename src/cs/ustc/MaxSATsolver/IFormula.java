@@ -2,6 +2,7 @@ package cs.ustc.MaxSATsolver;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -12,13 +13,14 @@ import java.util.Set;
  * @author ccding 
  * 2016年3月5日下午8:06:07
  */
-public class IFormula {
+public class IFormula{
 	private  List<IClause> clauses; //所有的clauses
 	private ILiteral[] vars; //formula的所有vars
 	private List<ILiteral> literals;
 	Set<ILiteral> visitedLits;
 	Set<IClause> visitedClas;
 	int nbVar, nbClas;
+
 
 	/**
 	 * 设置vars和clauses的容量
@@ -67,7 +69,8 @@ public class IFormula {
 			lit.addClause(clause);
 			lit.neighbors.addAll(lits);
 			lit.neighbors.remove(lit);
-			lit.degree = lit.neighbors.size();
+			lit.degree += lits.size()-1;
+			lit.initDegree = lit.degree;
 		} 
 	}
 	
@@ -106,21 +109,49 @@ public class IFormula {
 	 * then, the complementary set of all vertexes is independent set
 	 * @return independent set
 	 */
-	public Set<ILiteral> getIndependentSet(){
-		Collections.sort(literals);
-		List<ILiteral> vertexCover = new ArrayList<>();
+	public Set<ILiteral> getIndependentSet(double randomCoef){
+		if(Math.random()>randomCoef)
+			Collections.sort(literals);
+		Set<ILiteral> vertexCover = new HashSet<>();
 		Set<IClause> coverEdges = new HashSet<>();
 		Set<ILiteral> independentSet = new HashSet<>(literals);
 		for(int i=0; i<literals.size(); i++){
-			vertexCover.add(literals.get(i));
-			coverEdges.addAll(literals.get(i).getClas());
 			if(coverEdges.size()==clauses.size())
 				break;
+			vertexCover.add(literals.get(i));
+			coverEdges.addAll(literals.get(i).getClas());
+			
 		}
 		independentSet.removeAll(vertexCover);
 		return independentSet;
+//		return vertexCover;
 		
 	}
+	
+	public void setFormulaByGroup(Group group){
+		for(int i=0; i<group.agents.size(); i++){
+			visitedClas.addAll(group.agents.get(i).visitedClas);
+		}
+		clauses.removeAll(visitedClas);
+		visitedLits.addAll(group.agents);
+		literals.removeAll(group.agents);
+	}
+	
+	
+	public List<ILiteral> getUnvisitedLits(){
+		List<ILiteral> unvisitedLits = new ArrayList<>();
+		for(ILiteral l: literals){
+			if(!l.forbid){
+				unvisitedLits.add(l.getClas().size()>l.opposite.getClas().size()
+						? l:l.opposite);
+				l.forbid = true;
+				l.opposite.forbid = true;
+			}
+		}
+		return unvisitedLits;
+	}
+	
+	
 	
 	public void reset(){
 		clauses.addAll(visitedClas);
@@ -129,11 +160,15 @@ public class IFormula {
 		visitedLits.clear();
 		for(ILiteral l: literals){
 			l.forbid = false;
-			l.degree = l.neighbors.size();
+			l.degree = l.initDegree;
+			l.getClas().addAll(l.visitedClas);
+			l.visitedClas.clear();
 		}
 		for(IClause c: clauses){
 			c.unsatLitsNum = 0;
 		}
 	}
+	
+	
 	
 }
