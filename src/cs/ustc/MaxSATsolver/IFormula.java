@@ -16,9 +16,12 @@ public class IFormula{
 	private  List<IClause> clauses; //所有的clauses
 	private ILiteral[] vars; //formula的所有vars
 	private List<ILiteral> literals;
-	Set<ILiteral> visitedLits;
-	Set<IClause> visitedClas;
+	Set<ILiteral> satLits;
+	Set<IClause> satClas;
 	int nbVar, nbClas;
+	Set<IClause> unsatClas;
+	Set<ILiteral> solution;
+	
 
 
 	/**
@@ -32,8 +35,11 @@ public class IFormula{
 		vars = new ILiteral[nbvars];
 		clauses = new ArrayList<>(nbclauses);
 		literals = new ArrayList<>(nbvars*2);
-		visitedLits = new HashSet<>();
-		visitedClas = new HashSet<>();
+		satLits = new HashSet<>();
+		satClas = new HashSet<>();
+		unsatClas = new HashSet<>();
+		solution = new HashSet<>();
+		
 		
 	}
 	
@@ -102,6 +108,20 @@ public class IFormula{
 		}
 	}
 	
+	public void setUnsatClas(){
+		unsatClas.addAll(clauses);
+	}
+	
+	public ILiteral getMaxWeightLit(){
+		ILiteral maxWeightLit = literals.get(0);
+		for(int i=1; i<literals.size(); i++){
+			if(literals.get(i).weight > maxWeightLit.weight)
+				maxWeightLit = literals.get(i);
+		}
+		return maxWeightLit;
+	}
+	
+	
 	/**
 	 * get independent set 
 	 * first, find vertexes set covers all edges
@@ -132,10 +152,10 @@ public class IFormula{
 	
 	public void setFormulaByGroup(Group group){
 		for(int i=0; i<group.agents.size(); i++){
-			visitedClas.addAll(group.agents.get(i).visitedClas);
+			satClas.addAll(group.agents.get(i).visitedClas);
 		}
-		clauses.removeAll(visitedClas);
-		visitedLits.addAll(group.agents);
+		unsatClas.removeAll(satClas);
+		satLits.addAll(group.agents);
 		literals.removeAll(group.agents);
 	}
 	
@@ -153,13 +173,20 @@ public class IFormula{
 		return unvisitedLits;
 	}
 	
-	
+	public void increaseLitsWeightinUnsatClas(){
+		for(IClause c: unsatClas){
+			c.hardCoef++;
+			for(ILiteral l: c.literals)
+				l.weight++;
+		}
+	}
 	
 	public void reset(){
-		clauses.addAll(visitedClas);
-		visitedClas.clear();
-		literals.addAll(visitedLits);
-		visitedLits.clear();
+		satClas.clear();
+		unsatClas.clear();
+		unsatClas.addAll(clauses);
+		literals.addAll(satLits);
+		satLits.clear();
 		for(ILiteral l: literals){
 			l.forbid = false;
 			l.degree = l.initDegree;
@@ -169,6 +196,7 @@ public class IFormula{
 		for(IClause c: clauses){
 			c.unsatLitsNum = 0;
 		}
+		solution.clear();
 	}
 	
 	

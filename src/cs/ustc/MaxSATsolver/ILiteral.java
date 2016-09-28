@@ -70,7 +70,7 @@ public class ILiteral implements Comparable<ILiteral>{
 		return clauses;
 	}
     public String toString(){
-    	return id+" "+weight+"  ";
+    	return id+" ";
     }
     
     public double getWeightCoef(){
@@ -92,7 +92,6 @@ public class ILiteral implements Comparable<ILiteral>{
 		// TODO Auto-generated method stub
 		double res = (this.getWeightCoef()*this.weight-this.getDegreeCoef()*this.degree)
 				- (lit.getWeightCoef()*lit.weight-lit.getDegreeCoef()*lit.degree);
-//		double res = (this.weight-this.degree)- (lit.weight-lit.degree);
 		if(res == 0){
 			return 0;
 		}else{

@@ -40,12 +40,11 @@ public class Group {
 				c.unsatLitsNum--;
 				for(ILiteral l : c.literals){
 					//对 clause c 中所有 lits 通知  c 已满足
-					if(l.equals(lit))
-						// lit 本身无需处理
-						continue;
-					l.visitedClas.add(c);
-					l.getClas().remove(c);
-					l.degree -= 2;
+					if(! l.equals(lit)){
+						l.visitedClas.add(c);
+						l.getClas().remove(c);
+						l.degree -= 2;
+					}
 				}
 			}
 			//move all clas to visitedClas 
