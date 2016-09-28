@@ -2,7 +2,6 @@ package cs.ustc.MaxSATsolver;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -110,23 +109,26 @@ public class IFormula{
 	 * @return independent set
 	 */
 	public Set<ILiteral> getIndependentSet(double randomCoef){
-		if(Math.random()>randomCoef)
-			Collections.sort(literals);
 		Set<ILiteral> vertexCover = new HashSet<>();
 		Set<IClause> coverEdges = new HashSet<>();
 		Set<ILiteral> independentSet = new HashSet<>(literals);
+		
+		ILiteral lit;
+		if(Math.random() < randomCoef)
+			Collections.sort(literals);
+
 		for(int i=0; i<literals.size(); i++){
 			if(coverEdges.size()==clauses.size())
 				break;
-			vertexCover.add(literals.get(i));
-			coverEdges.addAll(literals.get(i).getClas());
-			
+			lit = literals.get(i);
+			vertexCover.add(lit);
+			coverEdges.addAll(lit.getClas());	
 		}
 		independentSet.removeAll(vertexCover);
 		return independentSet;
-//		return vertexCover;
 		
 	}
+
 	
 	public void setFormulaByGroup(Group group){
 		for(int i=0; i<group.agents.size(); i++){
