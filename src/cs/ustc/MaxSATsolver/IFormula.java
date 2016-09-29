@@ -20,7 +20,7 @@ public class IFormula{
 	Set<IClause> satClas;
 	int nbVar, nbClas;
 	Set<IClause> unsatClas;
-	Set<ILiteral> solution;
+	Set<ILiteral> unsatLits;
 	
 
 
@@ -35,10 +35,11 @@ public class IFormula{
 		vars = new ILiteral[nbvars];
 		clauses = new ArrayList<>(nbclauses);
 		literals = new ArrayList<>(nbvars*2);
-		satLits = new HashSet<>();
-		satClas = new HashSet<>();
-		unsatClas = new HashSet<>();
-		solution = new HashSet<>();
+		satLits = new HashSet<>(nbvars*2);
+		unsatLits = new HashSet<>(nbvars*2);
+		satClas = new HashSet<>(nbclauses);
+		unsatClas = new HashSet<>(nbclauses);
+
 		
 		
 	}
@@ -108,9 +109,7 @@ public class IFormula{
 		}
 	}
 	
-	public void setUnsatClas(){
-		unsatClas.addAll(clauses);
-	}
+
 	
 	public ILiteral getMaxWeightLit(){
 		ILiteral maxWeightLit = literals.get(0);
@@ -148,16 +147,6 @@ public class IFormula{
 		return independentSet;
 		
 	}
-
-	
-	public void setFormulaByGroup(Group group){
-		for(int i=0; i<group.agents.size(); i++){
-			satClas.addAll(group.agents.get(i).visitedClas);
-		}
-		unsatClas.removeAll(satClas);
-		satLits.addAll(group.agents);
-		literals.removeAll(group.agents);
-	}
 	
 	
 	public List<ILiteral> getUnvisitedLits(){
@@ -181,22 +170,106 @@ public class IFormula{
 		}
 	}
 	
+	
+	/**
+	 * 
+	 * TODO delete conflict lit from lits 
+	 * @param Lits
+	 */
+	public void removeConflictLits(List<ILiteral> Lits){
+		Set<ILiteral> conflictAgs = new HashSet<>();
+		ILiteral delAg;//delete literal
+		for (ILiteral ag : Lits) {
+			if(ag.forbid){
+				conflictAgs.add(ag);
+			}
+			else{
+				//group contains lit and lit.opposite(conflict), must delete lit or lit.opposite
+				if (Lits.contains(ag.opposite)&&
+						!(conflictAgs.contains(ag)||conflictAgs.contains(ag.opposite))) 
+					{	
+						delAg = ag.getClas().size()>ag.opposite.getClas().size() ?
+								ag : ag.opposite;
+						conflictAgs.add(delAg);
+					}
+			}	
+		}
+		Lits.removeAll(conflictAgs);
+		conflictAgs.clear();
+	}
+	
+	public void announceSatLit(ILiteral lit){
+		lit.forbid = true;
+		lit.opposite.forbid = true;
+		
+		this.satLits.add(lit);
+		if(this.satLits.contains(lit.opposite))
+			this.satLits.remove(lit.opposite);
+		
+		this.unsatLits.add(lit.opposite);
+		if(this.unsatLits.contains(lit))
+			this.unsatLits.remove(lit);
+		
+		
+		for(IClause c: lit.getClas()){
+			c.unsatLitsNum--;
+			this.satClas.add(c);
+			if(this.unsatClas.contains(c))
+				this.unsatClas.remove(c);
+			
+			for(ILiteral l : c.literals){
+				l.degree -= c.unsatLitsNum;
+				//对 clause c 中所有 lits 通知  c 已满足
+				l.satClas.add(c);
+				if(l.unsatClas.contains(c))
+					l.unsatClas.remove(c);
+			}
+			
+		}
+		for(IClause c: lit.opposite.getClas()){
+			if(c.unsatLitsNum < c.literals.size())
+				c.unsatLitsNum++;
+			if(c.unsatLitsNum == c.literals.size()){
+				this.unsatClas.add(c);
+				if(this.satClas.contains(c))
+					this.satClas.remove(c);
+				//对 clause c 中所有 lits 通知  c 不满足
+				for(ILiteral l : c.literals){
+					if(l.degree < l.initDegree)
+						l.degree += c.unsatLitsNum;
+					//对 clause c 中所有 lits 通知  c 已满足
+					l.unsatClas.add(c);
+					if(l.satClas.contains(c))
+						l.satClas.remove(c);
+				}
+			}
+				
+		}
+	
+	}
+	public void announceSatLits(List<ILiteral> lits){
+		for (ILiteral lit : lits) { 
+			announceSatLit(lit);
+		}
+	}
+	
+	
+	
 	public void reset(){
 		satClas.clear();
 		unsatClas.clear();
-		unsatClas.addAll(clauses);
-		literals.addAll(satLits);
 		satLits.clear();
+		unsatLits.clear();
+		
 		for(ILiteral l: literals){
 			l.forbid = false;
 			l.degree = l.initDegree;
-			l.getClas().addAll(l.visitedClas);
-			l.visitedClas.clear();
+			l.satClas.clear();
+			l.unsatClas.clear();
 		}
 		for(IClause c: clauses){
-			c.unsatLitsNum = 0;
+			c.unsatLitsNum = c.literals.size();
 		}
-		solution.clear();
 	}
 	
 	

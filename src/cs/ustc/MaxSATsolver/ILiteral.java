@@ -13,7 +13,10 @@ import java.util.Set;
 
 public class ILiteral implements Comparable<ILiteral>{
 	private final Set<IClause> clauses; //含有该literal的所有clauses
-	Set<IClause> visitedClas;
+	
+	Set<IClause> satClas;
+	Set<IClause> unsatClas;
+	
 	Set<ILiteral> neighbors;
 	int degree;
 	int initDegree;
@@ -34,7 +37,8 @@ public class ILiteral implements Comparable<ILiteral>{
 		}
 		clauses = new HashSet<>();
 		neighbors = new HashSet<>();
-		visitedClas = new HashSet<>();
+		satClas = new HashSet<>();
+		unsatClas = new HashSet<>();
 		weight = 0;
 	}
 	
@@ -49,7 +53,8 @@ public class ILiteral implements Comparable<ILiteral>{
         opposite.opposite = this;
         clauses = new HashSet<>();
         neighbors = new HashSet<>();
-        visitedClas = new HashSet<>();
+        satClas = new HashSet<>();
+		unsatClas = new HashSet<>();
         weight = 0;
     }
     

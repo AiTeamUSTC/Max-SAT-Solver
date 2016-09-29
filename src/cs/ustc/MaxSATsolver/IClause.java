@@ -14,7 +14,7 @@ public class IClause implements Comparable<IClause>{
 	
 	public  IClause(ArrayList<ILiteral> lits) {
 		literals = new ArrayList<ILiteral>(lits);
-		unsatLitsNum = 0;
+		unsatLitsNum = lits.size();
 		hardCoef = 0;
 	}
 	

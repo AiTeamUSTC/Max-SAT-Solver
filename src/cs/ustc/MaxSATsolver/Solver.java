@@ -12,7 +12,7 @@ import java.util.*;
 
 
 public class Solver  {
-	static final int  MAX_ITERATIONS = 10;
+	static final int  MAX_ITERATIONS = 1000;
 	static final double RANDOM_COEFFICIENT = 0.6;
 	public Solver(){
 		
@@ -25,26 +25,21 @@ public class Solver  {
 	 * @param randomCoef2 随机参数
 	 */
 	public void solveFormula(IFormula f, double randomCoef) {
-		List<Group> groups = new ArrayList<>();
+		List<List<ILiteral>> groups = new ArrayList<>();
 		while(true){
-			Group group = new Group();
-			group.agents.addAll(f.getIndependentSet(randomCoef));
-			//remove conflict agents
-			group.removeConflictAgents();
+			List<ILiteral> group = new ArrayList<>();
+			group.addAll(f.getIndependentSet(randomCoef));
+			//remove conflict lits
+			f.removeConflictLits(group);
 			//jump out while loop
-			if (group.agents.isEmpty()) {
+			if (group.isEmpty()) {
 				//still has some literals not visited
-				group.agents = f.getUnvisitedLits();
-				group.setGroupAttr();
-				f.setFormulaByGroup(group);
+				group = f.getUnvisitedLits();
+				f.announceSatLits(group);
 				groups.add(group);
-				
-				for(Group g: groups)
-					f.solution.addAll(g.agents);
 				break;
 			}
-			group.setGroupAttr();
-			f.setFormulaByGroup(group);
+			f.announceSatLits(group);
 			groups.add(group);
 		}
 		
@@ -63,7 +58,7 @@ public class Solver  {
 			//将 formula 中一些信息重置到初始状态
 			f.reset();
 			this.solveFormula(f, randomCoef);
-			fw.write(f.getClauses().size()+" ");
+			fw.write(f.unsatClas.size()+" ");
 			if(f.getClauses().size() == 0)
 				break;
 			//对于未满足的句子，增加其 hardCoef，使得下次迭代优先满足难度系数(hardCoef)高的句子
@@ -103,15 +98,17 @@ public class Solver  {
 		long begin = System.currentTimeMillis();
 		
 		IFormula formula = solver.getFormulaFromCNFFile(args[0]);
-		solver.solveFormula(formula, RANDOM_COEFFICIENT);
-		while(formula.unsatClas.size() != 0){
-			formula.increaseLitsWeightinUnsatClas();
-			ILiteral l = formula.getMaxWeightLit();
-			formula.solution.remove(l.opposite);
-			formula.solution.add(l);
-			
-			
-		}
+//		solver.solveFormula(formula, RANDOM_COEFFICIENT);
+		solver.iteratedSolveFormula(formula, RANDOM_COEFFICIENT, fw);
+//		while(formula.unsatClas.size() != 0){
+//			formula.increaseLitsWeightinUnsatClas();
+//			ILiteral l = formula.getMaxWeightLit();
+//			
+//			
+//			
+//			
+//			
+//		}
 		
 		
 		
