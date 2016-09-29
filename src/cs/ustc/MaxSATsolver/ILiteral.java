@@ -24,6 +24,7 @@ public class ILiteral implements Comparable<ILiteral>{
 	final int id;
 	int weight;
 	boolean forbid;
+	boolean lastModified;
 
 	
 	/**

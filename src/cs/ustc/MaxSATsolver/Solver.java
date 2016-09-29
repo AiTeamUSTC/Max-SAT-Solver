@@ -12,19 +12,22 @@ import java.util.*;
 
 
 public class Solver  {
-	static final int  MAX_ITERATIONS = 1000;
-	static final double RANDOM_COEFFICIENT = 0.6;
+	static final int  MAX_ITERATIONS = 5;
+	static final double RANDOM_COEF1 = 0.6;
+	static final double RANDOM_COEF2 = 0.1;
+	static final long TIME_LIMIT = 3*60*1000;
 	public Solver(){
 		
 	}
 	/**
 	 * TODO 将 formula 中每个 literal 视作一个 agent，将所有 agents 按照一定规则分成若干个不相交的联盟
-	 * 通过组内联盟来求解 formula 
+	 * 所有的分组构成 formula 的一个初始解 
 	 * @param f 给定的 formula
 	 * @param randomCoef1 随机参数
 	 * @param randomCoef2 随机参数
+	 * @throws IOException 
 	 */
-	public void solveFormula(IFormula f, double randomCoef) {
+	public void getInitSolution(IFormula f, double randomCoef) {
 		List<List<ILiteral>> groups = new ArrayList<>();
 		while(true){
 			List<ILiteral> group = new ArrayList<>();
@@ -46,19 +49,18 @@ public class Solver  {
 	}
 	
 	/**
-	 * TODO 迭代求解 formula 直到达到预设的最大迭代数
+	 * TODO 迭代求 formula 的初始解 直到达到预设的最大迭代数
 	 * @param f 参见 solveFormula() 
 	 * @param randomCoef 参见 solveFormula()
 	 * @return 完整求解 formula 所需的迭代次数
 	 * @throws IOException 
 	 */
-	public int iteratedSolveFormula(IFormula f, double randomCoef, FileWriter fw) throws IOException{
+	public int iteratedGetInitSolution(IFormula f, double randomCoef) throws IOException{
 		int iterations = 0;
 		while(++iterations != MAX_ITERATIONS){
 			//将 formula 中一些信息重置到初始状态
 			f.reset();
-			this.solveFormula(f, randomCoef);
-			fw.write(f.unsatClas.size()+" ");
+			this.getInitSolution(f, randomCoef);
 			if(f.getClauses().size() == 0)
 				break;
 			//对于未满足的句子，增加其 hardCoef，使得下次迭代优先满足难度系数(hardCoef)高的句子
@@ -67,6 +69,37 @@ public class Solver  {
 			
 		}
 		return iterations;
+	}
+	
+	/**
+	 * 
+	 * TODO 按照变量翻转的策略， 迭代求解 formula 直到找到解或者达到预设的时间限制
+	 * @param randomCoef
+	 */
+	public boolean solveFormulaBasedOnInitSolution(IFormula formula, double randomCoef, long timeLimit){
+		boolean isSolved = false;
+		long startTime = System.currentTimeMillis();
+		while(formula.unsatClas.size() != 0){
+			formula.increaseLitsWeightinUnsatClas();
+			ILiteral l = null;
+			if(Math.random() > randomCoef){
+			    l = formula.getMaxWeightUnsatLit();
+			}else{
+				l = formula.getRandomUnsatLit();
+			}
+			if(l == null)
+				l = formula.getRandomUnsatLit();
+			formula.announceSatLit(l);
+			l.lastModified = true;
+			l.opposite.lastModified = true;
+			for(ILiteral neibor: l.neighbors)
+				neibor.lastModified = false;
+			if(System.currentTimeMillis()-startTime > timeLimit)
+				break;
+		}
+		if(formula.unsatClas.size() == 0)
+			isSolved = true;
+		return isSolved;
 	}
 	
 	/**
@@ -80,7 +113,6 @@ public class Solver  {
 	public IFormula getFormulaFromCNFFile(String cnfFile) throws ParseFormatException, IOException{
 		IFormula f = new IFormula();
 		CNFFileReader cnfFileReader = new CNFFileReader();
-		System.out.println("file reading...");
 		cnfFileReader.parseInstance(cnfFile, f);
 		return f;
 	}
@@ -93,27 +125,28 @@ public class Solver  {
 	public static void main(String[] args) throws IOException, ParseFormatException{
 		System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
 		
-		FileWriter fw = new FileWriter(new File(args[1]));
+		FileWriter fw = new FileWriter(new File(args[0]));
 		Solver solver = new Solver();
-		long begin = System.currentTimeMillis();
+
 		
-		IFormula formula = solver.getFormulaFromCNFFile(args[0]);
-//		solver.solveFormula(formula, RANDOM_COEFFICIENT);
-		solver.iteratedSolveFormula(formula, RANDOM_COEFFICIENT, fw);
-//		while(formula.unsatClas.size() != 0){
-//			formula.increaseLitsWeightinUnsatClas();
-//			ILiteral l = formula.getMaxWeightLit();
-//			
-//			
-//			
-//			
-//			
-//		}
-		
-		
-		
-		long time = System.currentTimeMillis()-begin;
-		System.out.println("time:"+time);
+		String directory = "D:\\data\\uf20-91";
+		File files = new File(directory);
+ 		File[] fileArr = files.listFiles();
+ 		for(File file: fileArr){
+ 			System.out.println(file.getPath());
+			long begin = System.currentTimeMillis();
+			IFormula formula = solver.getFormulaFromCNFFile(file.getPath());
+			solver.getInitSolution(formula, RANDOM_COEF1);
+			boolean isSolved = solver.solveFormulaBasedOnInitSolution(formula, RANDOM_COEF2, TIME_LIMIT);
+			long time = System.currentTimeMillis()-begin;
+			System.out.println(time);
+			if(isSolved){
+				fw.write(file.getPath()+" "+time+" "+formula.unsatClas.size()+"\r\n");
+			}else{
+				fw.write(file.getPath()+" time out "+formula.unsatClas.size()+"\r\n");
+			}
+
+ 		}
 
 		fw.close();
 	}

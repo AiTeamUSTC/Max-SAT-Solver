@@ -10,11 +10,13 @@ import java.util.List;
 public class IClause implements Comparable<IClause>{
 	List<ILiteral> literals;
 	int unsatLitsNum;
+	int satLitsNum;
 	int hardCoef;
 	
 	public  IClause(ArrayList<ILiteral> lits) {
 		literals = new ArrayList<ILiteral>(lits);
-		unsatLitsNum = lits.size();
+		unsatLitsNum = 0;
+		satLitsNum = 0;
 		hardCoef = 0;
 	}
 	
@@ -35,6 +37,7 @@ public class IClause implements Comparable<IClause>{
 			sb.append(lit.id+" ");
 		}
 		sb.append("] "+unsatLitsNum);
+		sb.append(" "+satLitsNum);
 		sb.append(" "+hardCoef);
 		return sb.toString();
 	}

@@ -95,7 +95,7 @@ public class CNFFileReader {
 //		int ll = 0;
 		while (true) {
 			line = in.readLine();
-			if (line == null) {
+			if (line == null || line.equals("%")) {
 				// 读取文件结束
 				if (!literals.isEmpty()) {
 					formula.addClause(literals);

@@ -1,6 +1,7 @@
 package cs.ustc.MaxSATsolver;
 
 import java.util.List;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -111,13 +112,22 @@ public class IFormula{
 	
 
 	
-	public ILiteral getMaxWeightLit(){
-		ILiteral maxWeightLit = literals.get(0);
-		for(int i=1; i<literals.size(); i++){
-			if(literals.get(i).weight > maxWeightLit.weight)
-				maxWeightLit = literals.get(i);
+	public ILiteral getMaxWeightUnsatLit(){
+		int minWeight = Integer.MIN_VALUE;
+		ILiteral maxWeightUnsatLit = null;
+		for(ILiteral lit: unsatLits){
+			if(lit.weight > minWeight && !lit.lastModified && lit.unsatClas.size()>0){
+				minWeight = lit.weight;
+				maxWeightUnsatLit = lit;
+			}
 		}
-		return maxWeightLit;
+		return maxWeightUnsatLit;
+	}
+	
+	
+	public ILiteral getRandomUnsatLit(){
+		int idx = (int)Math.random()*unsatLits.size();
+		return (ILiteral) unsatLits.toArray()[idx];
 	}
 	
 	
@@ -148,7 +158,11 @@ public class IFormula{
 		
 	}
 	
-	
+	/**
+	 * 
+	 * TODO 查找 formula 中从未访问过的 literal 并返回 
+	 * @return
+	 */
 	public List<ILiteral> getUnvisitedLits(){
 		List<ILiteral> unvisitedLits = new ArrayList<>();
 		for(ILiteral l: literals){
@@ -198,21 +212,24 @@ public class IFormula{
 		conflictAgs.clear();
 	}
 	
+	/**
+	 * 
+	 * TODO 将 lit 设置为满足，并更新 formula 中的信息
+	 * @param lit
+	 * @throws IOException 
+	 */
+	
 	public void announceSatLit(ILiteral lit){
 		lit.forbid = true;
 		lit.opposite.forbid = true;
 		
-		this.satLits.add(lit);
-		if(this.satLits.contains(lit.opposite))
-			this.satLits.remove(lit.opposite);
-		
-		this.unsatLits.add(lit.opposite);
-		if(this.unsatLits.contains(lit))
-			this.unsatLits.remove(lit);
+
 		
 		
 		for(IClause c: lit.getClas()){
-			c.unsatLitsNum--;
+			c.satLitsNum++;
+			if(this.unsatLits.contains(lit))
+				c.unsatLitsNum--;
 			this.satClas.add(c);
 			if(this.unsatClas.contains(c))
 				this.unsatClas.remove(c);
@@ -227,8 +244,9 @@ public class IFormula{
 			
 		}
 		for(IClause c: lit.opposite.getClas()){
-			if(c.unsatLitsNum < c.literals.size())
-				c.unsatLitsNum++;
+			c.unsatLitsNum++;
+			if(this.satLits.contains(lit.opposite))
+				c.satLitsNum--;
 			if(c.unsatLitsNum == c.literals.size()){
 				this.unsatClas.add(c);
 				if(this.satClas.contains(c))
@@ -242,11 +260,23 @@ public class IFormula{
 					if(l.satClas.contains(c))
 						l.satClas.remove(c);
 				}
-			}
-				
+			}		
 		}
+		
+		this.satLits.add(lit);
+		if(this.satLits.contains(lit.opposite))
+			this.satLits.remove(lit.opposite);
+		this.unsatLits.add(lit.opposite);
+		if(this.unsatLits.contains(lit))
+			this.unsatLits.remove(lit);
 	
 	}
+	/**
+	 * 
+	 * TODO 将 lits 中 所有 literal 都设置为满足，并更新 formula 中的信息
+	 * @param lits
+	 * @throws IOException 
+	 */
 	public void announceSatLits(List<ILiteral> lits){
 		for (ILiteral lit : lits) { 
 			announceSatLit(lit);
@@ -254,7 +284,10 @@ public class IFormula{
 	}
 	
 	
-	
+	/**
+	 * 
+	 * TODO reset formula information to origin status
+	 */
 	public void reset(){
 		satClas.clear();
 		unsatClas.clear();
@@ -264,11 +297,13 @@ public class IFormula{
 		for(ILiteral l: literals){
 			l.forbid = false;
 			l.degree = l.initDegree;
+			l.lastModified = false;
 			l.satClas.clear();
 			l.unsatClas.clear();
 		}
 		for(IClause c: clauses){
-			c.unsatLitsNum = c.literals.size();
+			c.unsatLitsNum = 0;
+			c.satLitsNum = 0;
 		}
 	}
 	
