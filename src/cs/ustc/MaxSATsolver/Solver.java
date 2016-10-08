@@ -90,10 +90,12 @@ public class Solver  {
 			if(l == null)
 				l = formula.getRandomUnsatLit();
 			formula.announceSatLit(l);
+//			l.weight--;
 			l.lastModified = true;
 			l.opposite.lastModified = true;
 			for(ILiteral neibor: l.neighbors)
 				neibor.lastModified = false;
+			System.out.println(formula.unsatClas.size());
 			if(System.currentTimeMillis()-startTime > timeLimit)
 				break;
 		}
@@ -129,7 +131,7 @@ public class Solver  {
 		Solver solver = new Solver();
 
 		
-		String directory = "D:\\data\\uf20-91";
+		String directory = "D:\\data\\MaxSAT2016_benchmarks\\ms_crafted\\bipartite\\maxcut-140-630-0.7";
 		File files = new File(directory);
  		File[] fileArr = files.listFiles();
  		for(File file: fileArr){

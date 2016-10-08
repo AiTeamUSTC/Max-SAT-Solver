@@ -125,8 +125,10 @@ public class IFormula{
 	}
 	
 	
+	
+	
 	public ILiteral getRandomUnsatLit(){
-		int idx = (int)Math.random()*unsatLits.size();
+		int idx = (int)(Math.random()*unsatLits.size());
 		return (ILiteral) unsatLits.toArray()[idx];
 	}
 	

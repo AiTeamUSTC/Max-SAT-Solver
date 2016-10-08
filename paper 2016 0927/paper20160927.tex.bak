@@ -1,0 +1,32 @@
+\documentclass{llncs}
+\usepackage{booktabs,chngpage,multirow,tabularx,algorithm,algorithmic,amsmath,xcolor,abstract,graphicx}
+
+\begin{document}
+\title{Boolean Game Approach to Solving Large Scale Max-SAT Problem}
+\maketitle
+\begin{abstract}
+
+\end{abstract}
+\section{Introduction}
+
+\section{The Boolean Game Solver for Max-SAT Problem}
+
+\subsection{The Framework of BGIA}
+
+\subsection{Cooperative Strategies}
+
+
+
+
+\section{Experimental Evaluation}
+
+\subsection{The Benchmarks and Experiment Setting}
+
+
+\subsection{Experiments on Different Cooperative Strategies}
+
+\section{Conclusion and Future Work}
+
+\bibliography{myreference}
+\bibliographystyle{ieeetr}
+\end{document}

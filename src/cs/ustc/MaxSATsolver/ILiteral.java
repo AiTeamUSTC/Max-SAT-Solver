@@ -59,6 +59,19 @@ public class ILiteral implements Comparable<ILiteral>{
         weight = 0;
     }
     
+    
+    public int flipIncrease(){
+    	int satNum = 0;
+    	int unsatNum = 0;
+    	for(IClause c: clauses)
+    		if(c.satLitsNum==1)
+    			unsatNum++;
+    	for(IClause c: opposite.clauses)
+    		if(c.satLitsNum==0)
+    			satNum++;
+    	return satNum-unsatNum;
+    }
+    
     /**
      * register clause
      * @param clause
