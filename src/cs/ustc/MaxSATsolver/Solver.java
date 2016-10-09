@@ -35,7 +35,7 @@ public class Solver  {
 			//remove conflict lits
 			f.removeConflictLits(group);
 			//jump out while loop
-			if (group.isEmpty()) {
+			if (group.isEmpty()){
 				//still has some literals not visited
 				group = f.getUnvisitedLits();
 				f.announceSatLits(group);

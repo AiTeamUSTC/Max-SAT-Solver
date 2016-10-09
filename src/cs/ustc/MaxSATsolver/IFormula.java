@@ -22,6 +22,7 @@ public class IFormula{
 	int nbVar, nbClas;
 	Set<IClause> unsatClas;
 	Set<ILiteral> unsatLits;
+	Set<IVariable> variables;
 	
 
 
@@ -40,6 +41,7 @@ public class IFormula{
 		unsatLits = new HashSet<>(nbvars*2);
 		satClas = new HashSet<>(nbclauses);
 		unsatClas = new HashSet<>(nbclauses);
+		variables = new HashSet<>(nbvars);
 
 		
 		
@@ -106,6 +108,7 @@ public class IFormula{
 			if(vars[i]!=null){
 				literals.add(vars[i]);
 				literals.add(vars[i].opposite);
+				variables.add(new IVariable(vars[i]));
 			}
 		}
 	}
