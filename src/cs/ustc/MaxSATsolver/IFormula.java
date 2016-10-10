@@ -1,11 +1,9 @@
 package cs.ustc.MaxSATsolver;
 
 import java.util.List;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 
 /**
@@ -18,10 +16,10 @@ public class IFormula{
 	ILiteral[] vars; //formula的所有vars
 	int nbVar, nbClas;
 	List<IVariable> variables;
-	Set<IVariable> visitedVars;
-	Set<IVariable> unVisitedVars;
-	Set<IClause> visitedClas;
-	Set<IClause> unVisitedClas;
+	Set<ILiteral> satLits;
+	Set<IClause> satClas;
+	Set<IClause> unsatClas;
+	Set<ILiteral> unsatLits;
 	
 
 
@@ -35,11 +33,11 @@ public class IFormula{
 		nbClas = nbclauses;
 		vars = new ILiteral[nbvars];
 		clauses = new ArrayList<>(nbclauses);
-		visitedVars = new HashSet<>(nbvars);
-		unVisitedVars = new HashSet<>(nbvars);
-		visitedClas = new HashSet<>(nbclauses);
-		unVisitedClas = new HashSet<>(nbclauses);
 		variables = new ArrayList<>(nbvars);
+		satLits = new HashSet<>(nbvars*2);
+		unsatLits = new HashSet<>(nbvars*2);
+		satClas = new HashSet<>(nbclauses);
+		unsatClas = new HashSet<>(nbclauses);
 	}
 	
 	/**
@@ -63,7 +61,7 @@ public class IFormula{
 	
 	/**
 	 * 
-	 * TODO 初始化每个 variable 的邻居，并设置相应的 degree
+	 *  初始化每个 variable 的邻居，并设置相应的 degree
 	 */
 	public void setVarsNeighbors(){
 		for(IVariable var: variables){
@@ -81,7 +79,7 @@ public class IFormula{
 	
 	/**
 	 * 
-	 * TODO 通过 lit 找到对应的 variable
+	 *  通过 lit 找到对应的 variable
 	 * @param lit
 	 * @return
 	 */
@@ -94,7 +92,7 @@ public class IFormula{
 	}
 	
 	/**
-	 * 通过vars添加clause
+	 *  通过vars添加clause
 	 * @param vars
 	 */
 	public void addClause(ArrayList<ILiteral> lits) {
@@ -111,109 +109,150 @@ public class IFormula{
 	}
 	
 	/**
-	 * set literals
+	 *  set literals
 	 */
 	public void setVariables(){
 		for (int i = 0; i < vars.length; i++) {
 			if(vars[i]!=null){
+				vars[i].unsatClas.addAll(vars[i].getClas());
+				vars[i].opposite.unsatClas.addAll(vars[i].opposite.getClas());
 				variables.add(new IVariable(vars[i]));
 			}
 		}
-		unVisitedVars.addAll(variables);
-		unVisitedClas.addAll(clauses);
 	}
 	
 	
-	/**
-	 * get independent set 
-	 * first, find vertexes set covers all edges
-	 * then, the complementary set of all vertexes is independent set
-	 * @return independent set
-	 */
-	public Set<IVariable> getIndependentGroup(double randomCoef){
-		Set<IVariable> vertexCover = new HashSet<>();
-		Set<IClause> coverEdges = new HashSet<>();
-		Set<IVariable> independentSet = new HashSet<>(variables);
-		
-		IVariable var;
-		if(Math.random() < randomCoef)
-			Collections.sort(variables);
-
-		for(int i=0; i<variables.size(); i++){
-			if(coverEdges.size()==clauses.size())
-				break;
-			var = variables.get(i);
-			vertexCover.add(var);
-			coverEdges.addAll(var.clauses);	
-		}
-		independentSet.removeAll(vertexCover);
-		return independentSet;
-		
+	public List<ILiteral> getGroupSolution(List<IVariable> group){
+		List<ILiteral> solution = new ArrayList<>();
+		for(IVariable var:group)
+			solution.add(var.lit.unsatClas.size()>var.oppositeLit.unsatClas.size() ? 
+					var.lit : var.oppositeLit);
+		return solution;
 	}
 	
+//	/**
+//	 * get independent set 
+//	 * first, find vertexes set covers all edges
+//	 * then, the complementary set of all vertexes is independent set
+//	 * @return independent set
+//	 */
+//	public Set<IVariable> getIndependentGroup(double randomCoef){
+//		Set<IVariable> vertexCover = new HashSet<>();
+//		Set<IClause> coverEdges = new HashSet<>();
+//		Set<IVariable> independentSet = new HashSet<>(unVisitedVars);
+//		
+//		IVariable var;
+//		if(Math.random() < randomCoef)
+//			Collections.sort(unVisitedVars);
+//
+//		for(int i=0; i<unVisitedVars.size(); i++){
+//			if(coverEdges.size()==unVisitedClas.size())
+//				break;
+//			var = unVisitedVars.get(i);
+//			vertexCover.add(var);
+//			coverEdges.addAll(var.clauses);	
+//		}
+//		independentSet.removeAll(vertexCover);
+//		return independentSet;
+//		
+//	}
 	
+	
+	
+//	/**
+//	 * 
+//	 *  查找 formula 中从未访问过的 literal 并返回 
+//	 * @return
+//	 */
+//	public List<IVariable> getUnvisitedVars(){
+//		List<IVariable> unvisitedVars = new ArrayList<>();
+//		for(IVariable var: variables){
+//			if(!var.visited){
+//				unvisitedVars.add(var);
+//				var.visited = true;
+//			}
+//		}
+//		return unvisitedVars;
+//	}	
 	
 	/**
 	 * 
-	 * TODO 查找 formula 中从未访问过的 literal 并返回 
-	 * @return
+	 * TODO 将 lit 设置为满足，并更新 formula 中的信息
+	 * @param lit
+	 * @throws IOException 
 	 */
-	public List<IVariable> getUnvisitedVars(){
-		List<IVariable> unvisitedVars = new ArrayList<>();
-		for(IVariable var: variables){
-			if(!var.visited){
-				unvisitedVars.add(var);
-				var.visited = true;
+	
+	public void announceSatLit(ILiteral lit){				
+		
+		for(IClause c: lit.getClas()){
+			c.satLitsNum++;
+			if(this.unsatLits.contains(lit))
+				c.unsatLitsNum--;
+			this.satClas.add(c);
+			if(this.unsatClas.contains(c))
+				this.unsatClas.remove(c);
+			
+			for(ILiteral l : c.literals){
+				//对 clause c 中所有 lits 通知  c 已满足
+				l.satClas.add(c);
+				if(l.unsatClas.contains(c))
+					l.unsatClas.remove(c);
 			}
+			
 		}
-		return unvisitedVars;
-	}	
-	
-	/**
-	 * 
-	 * TODO 将 var 设置为已访问，并更新 formula 中的信息
-	 * @param var
-	 * @throws IOException 
-	 */
-	
-	public void setVisitedVariable(IVariable var){
-		var.visited = true;
-		for(IVariable neighbor: var.neighbors)
-			neighbor.degree--;
-		this.unVisitedVars.remove(var);
-		this.visitedVars.add(var);
-		this.unVisitedClas.removeAll(var.clauses);
-		this.visitedClas.addAll(var.clauses);
-	
-	}
-	/**
-	 * 
-	 * TODO 将 vars 中 所有 variable 都设置为已访问，并更新 formula 中的信息
-	 * @param vars
-	 * @throws IOException 
-	 */
-	public void setVisitedVariables(List<IVariable> vars){
-		for (IVariable var : vars) { 
-			setVisitedVariable(var);
+		for(IClause c: lit.opposite.getClas()){
+			c.unsatLitsNum++;
+			if(this.satLits.contains(lit.opposite))
+				c.satLitsNum--;
+			if(c.unsatLitsNum == c.literals.size()){
+				this.unsatClas.add(c);
+				if(this.satClas.contains(c))
+					this.satClas.remove(c);
+				//对 clause c 中所有 lits 通知  c 不满足
+				for(ILiteral l : c.literals){
+					l.unsatClas.add(c);
+					if(l.satClas.contains(c))
+						l.satClas.remove(c);
+				}
+			}		
 		}
-	}
-	
-	
-	/**
-	 * 
-	 * TODO reset formula information to origin status
-	 */
-	public void reset(){
-		visitedClas.clear();
-		unVisitedClas.clear();
-		visitedVars.clear();
-		unVisitedVars.clear();
 		
-		for(IVariable v: variables){
-			v.visited = false;
-			v.degree = v.initDegree;
+		this.satLits.add(lit);
+		if(this.satLits.contains(lit.opposite))
+			this.satLits.remove(lit.opposite);
+		this.unsatLits.add(lit.opposite);
+		if(this.unsatLits.contains(lit))
+			this.unsatLits.remove(lit);
+	
+	}
+	/**
+	 * 
+	 * TODO 将 lits 中 所有 literal 都设置为满足，并更新 formula 中的信息
+	 * @param lits
+	 * @throws IOException 
+	 */
+	public void announceSatLits(List<ILiteral> lits){
+		for (ILiteral lit : lits) { 
+			announceSatLit(lit);
 		}
 	}
+	
+	
+//	/**
+//	 * 
+//	 *  reset formula information to origin status
+//	 */
+//	public void reset(){
+////		visitedClas.clear();
+////		unVisitedClas.clear();
+////		visitedVars.clear();
+////		unVisitedVars.clear();
+//		
+//		for(IVariable v: variables){
+//			v.visited = false;
+//			v.degree = v.initDegree;
+//		}
+//	}
 	
 	
 	

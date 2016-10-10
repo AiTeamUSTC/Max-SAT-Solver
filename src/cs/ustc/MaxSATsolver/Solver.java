@@ -6,9 +6,25 @@ package cs.ustc.MaxSATsolver;
 
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+
+import org.jgraph.graph.DefaultEdge;
+import org.jgrapht.UndirectedGraph;
+import org.jgrapht.graph.SimpleGraph;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook; 
+import org.apache.poi.ss.usermodel.Row; 
+import org.apache.poi.ss.usermodel.Sheet; 
+import org.apache.poi.ss.usermodel.Workbook;
 
 
 public class Solver  {
@@ -20,7 +36,7 @@ public class Solver  {
 		
 	}
 	/**
-	 * TODO 将 formula 中每个 literal 视作一个 agent，将所有 agents 按照一定规则分成若干个不相交的联盟
+	 *  将 formula 中每个 literal 视作一个 agent，将所有 agents 按照一定规则分成若干个不相交的联盟
 	 * 所有的分组构成 formula 的一个初始解 
 	 * @param f 给定的 formula
 	 * @param randomCoef1 随机参数
@@ -29,19 +45,17 @@ public class Solver  {
 	 */
 	public List<List<IVariable>> getGroups(IFormula f, double randomCoef) {
 		List<List<IVariable>> groups = new ArrayList<>();
+		UndirectedGraph<IVariable, DefaultEdge> graph = new SimpleGraph<>(DefaultEdge.class);
+		GraphTool.transFormulaToGraph(graph, f);
 		while(true){
 			List<IVariable> group = new ArrayList<>();
-			group.addAll(f.getIndependentGroup(randomCoef));
+			group.addAll(GraphTool.findIndependentSet(graph));
 			//jump out while loop
 			if (group.isEmpty()){
-				//still has some literals not visited
-				group = f.getUnvisitedVars();
-				f.setVisitedVariables(group);
-				groups.add(group);
 				break;
 			}
-			f.setVisitedVariables(group);
 			groups.add(group);
+			graph.removeAllVertices(group);
 		}
 		return groups;
 		
@@ -50,16 +64,22 @@ public class Solver  {
 	
 	/**
 	 * 
-	 * TODO 按照变量翻转的策略， 迭代求解 formula 直到找到解或者达到预设的时间限制
+	 *  按照变量翻转的策略， 迭代求解 formula 直到找到解或者达到预设的时间限制
 	 * @param randomCoef
 	 */
-	public void solveFormulaBasedOnGroups(IFormula formula){
-		boolean isSolved = false;
-		long startTime = System.currentTimeMillis();
+	public void solveFormulaBasedOnGroups(IFormula formula, List<List<IVariable>> groups){
+		List<ILiteral> solution = new ArrayList<>();
+		List<ILiteral> groupSolution = new ArrayList<>();
+		for(List<IVariable> group: groups){
+			groupSolution = formula.getGroupSolution(group);
+			formula.announceSatLits(groupSolution);
+			solution.addAll(groupSolution);
+		}
+
 	}
 	
 	/**
-	 * TODO 读取 cnf 文件，并将信息存入到 formula 中
+	 *  读取 cnf 文件，并将信息存入到 formula 中
 	 * @param cnfFile
 	 * @return formula
 	 * @throws ParseFormatException
@@ -81,24 +101,50 @@ public class Solver  {
 	public static void main(String[] args) throws IOException, ParseFormatException{
 		System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
 		
-		FileWriter fw = new FileWriter(new File(args[0]));
+		Workbook wb = new HSSFWorkbook();
+		OutputStream os = null;
 		Solver solver = new Solver();
 
 		
-		String directory = "D:\\data\\MaxSAT2016_benchmarks\\ms_crafted\\bipartite\\maxcut-140-630-0.7";
-		File files = new File(directory);
- 		File[] fileArr = files.listFiles();
- 		for(File file: fileArr){
+		Path path = Paths.get(args[0]);
+
+ 		
+ 		final List<File> files = new ArrayList<File>();
+ 		SimpleFileVisitor<Path> finder = new SimpleFileVisitor<Path>(){
+ 		    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException{
+ 		    	if(file.toFile().getName().endsWith(".cnf"))
+ 		    		files.add(file.toFile());
+ 		        return super.visitFile(file, attrs);
+ 		    }
+ 		};
+ 		 
+ 		java.nio.file.Files.walkFileTree(path, finder);
+ 		
+		Sheet sheet = wb.createSheet("MaxSAT2016_benchmarks results");
+		Row r = sheet.createRow(0);
+		r.createCell(0).setCellValue("Instance");
+		r.createCell(1).setCellValue("UnsatNum");
+		r.createCell(2).setCellValue("Time(ms)");
+		
+ 		int rowNum = 1;
+ 		for(File file: files){
+ 			r = sheet.createRow(rowNum++);
  			System.out.println(file.getPath());
 			long begin = System.currentTimeMillis();
 			IFormula formula = solver.getFormulaFromCNFFile(file.getPath());
-			solver.getGroups(formula, RANDOM_COEF1);
-			
+			List<List<IVariable>> groups = solver.getGroups(formula, RANDOM_COEF1);
+			solver.solveFormulaBasedOnGroups(formula,groups);
 			long time = System.currentTimeMillis()-begin;
 			System.out.println(time);
-
+			
+			r.createCell(0).setCellValue(file.getName());
+			r.createCell(1).setCellValue(formula.unsatClas.size());
+			r.createCell(2).setCellValue(time);
  		}
+ 		os = new FileOutputStream(args[1]);
+ 		wb.write(os);
+ 		wb.close();
+ 		os.close();
 
-		fw.close();
 	}
 }

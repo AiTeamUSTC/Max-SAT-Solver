@@ -6,7 +6,7 @@ import java.util.Set;
  * 
  * @ClassName: IVariable
  *
- * @Description: TODO
+ * @Description: 
  *
  * @author: ccding
  * @date: 2016年10月6日 上午9:30:17
@@ -31,8 +31,13 @@ public class IVariable implements Comparable<IVariable>{
 	}
 	@Override
 	public int compareTo(IVariable var) {
-		// TODO Auto-generated method stub
+		//  Auto-generated method stub
 		return this.degree - var.degree;
+	}
+	
+	@Override
+	public String toString(){
+		return lit.id+" "+oppositeLit.id;
 	}
 
 }

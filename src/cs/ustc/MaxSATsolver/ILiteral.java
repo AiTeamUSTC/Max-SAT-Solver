@@ -108,7 +108,7 @@ public class ILiteral implements Comparable<ILiteral>{
 
 	@Override
 	public int compareTo(ILiteral lit) {
-		// TODO Auto-generated method stub
+		//  Auto-generated method stub
 		double res = (this.getWeightCoef()*this.weight-this.getDegreeCoef()*this.degree)
 				- (lit.getWeightCoef()*lit.weight-lit.getDegreeCoef()*lit.degree);
 		if(res == 0){

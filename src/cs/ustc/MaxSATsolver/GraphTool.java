@@ -20,9 +20,9 @@ public class GraphTool {
 	 * @param graph
 	 * @return
 	 */
-	public static Set<ILiteral> findIndependentSet(UndirectedGraph<ILiteral, DefaultEdge> graph){
-		Set<ILiteral> setCover = VertexCovers.findGreedyCover(graph);
-		Set<ILiteral> inSet = new HashSet<>(graph.vertexSet());
+	public static Set<IVariable> findIndependentSet(UndirectedGraph<IVariable, DefaultEdge> graph){
+		Set<IVariable> setCover = VertexCovers.findGreedyCover(graph);
+		Set<IVariable> inSet = new HashSet<>(graph.vertexSet());
 		inSet.removeAll(setCover);
 		return inSet;
 	}
@@ -39,7 +39,6 @@ public class GraphTool {
 			
 		}
 		for (IVariable var: formula.variables) {
-
 			for (IVariable neighbor: var.neighbors) {
 				graph.addEdge(var, neighbor);
 			}
@@ -47,15 +46,15 @@ public class GraphTool {
 		}
 	}
 	
-	public static void paintGraph(JFrame frame, UndirectedGraph<ILiteral, DefaultEdge> sg){
+	public static void paintGraph(JFrame frame, UndirectedGraph<IVariable, DefaultEdge> sg){
 		ListenableGraph<String, DefaultEdge> g =
 	            new ListenableUndirectedGraph<String, DefaultEdge>(
 	                DefaultEdge.class);
 		
 		MyGraphAdapter mga = new MyGraphAdapter();
 		mga.init(g);
-		for (ILiteral lit : sg.vertexSet()) {
-			g.addVertex(lit.toString());
+		for (IVariable var : sg.vertexSet()) {
+			g.addVertex(var.toString());
 		}
 		for(DefaultEdge me: sg.edgeSet()){
 			g.addEdge(sg.getEdgeSource(me).toString(), sg.getEdgeTarget(me).toString());
