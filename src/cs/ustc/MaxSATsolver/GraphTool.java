@@ -1,7 +1,6 @@
 package cs.ustc.MaxSATsolver;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 import javax.swing.JFrame;
@@ -34,21 +33,15 @@ public class GraphTool {
 	 * @param graph
 	 * @param formula
 	 */
-	public static void transFormulaToGraph(UndirectedGraph<ILiteral, DefaultEdge> graph, IFormula formula){
-		List<ILiteral> tmpArrList;
-		//vertex is the literals 1..nbVar
-		for (Iterator<ILiteral> it = formula.getLiterals().iterator(); it.hasNext();) {
+	public static void transFormulaToGraph(UndirectedGraph<IVariable, DefaultEdge> graph, IFormula formula){
+		for (Iterator<IVariable> it = formula.variables.iterator(); it.hasNext();) {
 			graph.addVertex(it.next());
 			
 		}
-		//iterate all clauses add edges
-		for (IClause c:formula.getClauses()) {
-			//if clause c is satisfied, need not consider 
-			tmpArrList = c.literals;
-			for (int i = 0; i < tmpArrList.size()-1; i++) {
-				for (int j = i+1; j < tmpArrList.size(); j++) {
-					graph.addEdge(tmpArrList.get(i), tmpArrList.get(j));
-				}
+		for (IVariable var: formula.variables) {
+
+			for (IVariable neighbor: var.neighbors) {
+				graph.addEdge(var, neighbor);
 			}
 			
 		}

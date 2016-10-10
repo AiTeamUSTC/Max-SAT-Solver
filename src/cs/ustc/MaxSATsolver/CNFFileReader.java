@@ -87,7 +87,7 @@ public class CNFFileReader {
 		ILiteral literal;
 		int realNbOfClauses = 0;
 		
-		ILiteral[] voc = formula.getvars();
+		ILiteral[] voc = formula.vars;
 		ArrayList<ILiteral> literals = new ArrayList<ILiteral>(3);
 
 		nbVars = voc.length;
@@ -141,7 +141,8 @@ public class CNFFileReader {
 			skipComments(in);
 			readProblemLine(in, formula);
 			readClauses(in, formula);
-			formula.setLiterals();
+			formula.setVariables();
+			formula.setVarsNeighbors();
 		} catch (IOException e) {
 			throw new ParseFormatException(e);
 		} catch (NumberFormatException e) {

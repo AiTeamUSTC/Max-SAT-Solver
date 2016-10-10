@@ -27,81 +27,35 @@ public class Solver  {
 	 * @param randomCoef2 随机参数
 	 * @throws IOException 
 	 */
-	public void getInitSolution(IFormula f, double randomCoef) {
-		List<List<ILiteral>> groups = new ArrayList<>();
+	public List<List<IVariable>> getGroups(IFormula f, double randomCoef) {
+		List<List<IVariable>> groups = new ArrayList<>();
 		while(true){
-			List<ILiteral> group = new ArrayList<>();
-			group.addAll(f.getIndependentSet(randomCoef));
-			//remove conflict lits
-			f.removeConflictLits(group);
+			List<IVariable> group = new ArrayList<>();
+			group.addAll(f.getIndependentGroup(randomCoef));
 			//jump out while loop
 			if (group.isEmpty()){
 				//still has some literals not visited
-				group = f.getUnvisitedLits();
-				f.announceSatLits(group);
+				group = f.getUnvisitedVars();
+				f.setVisitedVariables(group);
 				groups.add(group);
 				break;
 			}
-			f.announceSatLits(group);
+			f.setVisitedVariables(group);
 			groups.add(group);
 		}
+		return groups;
 		
 	}
 	
-	/**
-	 * TODO 迭代求 formula 的初始解 直到达到预设的最大迭代数
-	 * @param f 参见 solveFormula() 
-	 * @param randomCoef 参见 solveFormula()
-	 * @return 完整求解 formula 所需的迭代次数
-	 * @throws IOException 
-	 */
-	public int iteratedGetInitSolution(IFormula f, double randomCoef) throws IOException{
-		int iterations = 0;
-		while(++iterations != MAX_ITERATIONS){
-			//将 formula 中一些信息重置到初始状态
-			f.reset();
-			this.getInitSolution(f, randomCoef);
-			if(f.getClauses().size() == 0)
-				break;
-			//对于未满足的句子，增加其 hardCoef，使得下次迭代优先满足难度系数(hardCoef)高的句子
-			f.increaseLitsWeightinUnsatClas();
-
-			
-		}
-		return iterations;
-	}
 	
 	/**
 	 * 
 	 * TODO 按照变量翻转的策略， 迭代求解 formula 直到找到解或者达到预设的时间限制
 	 * @param randomCoef
 	 */
-	public boolean solveFormulaBasedOnInitSolution(IFormula formula, double randomCoef, long timeLimit){
+	public void solveFormulaBasedOnGroups(IFormula formula){
 		boolean isSolved = false;
 		long startTime = System.currentTimeMillis();
-		while(formula.unsatClas.size() != 0){
-			formula.increaseLitsWeightinUnsatClas();
-			ILiteral l = null;
-			if(Math.random() > randomCoef){
-			    l = formula.getMaxWeightUnsatLit();
-			}else{
-				l = formula.getRandomUnsatLit();
-			}
-			if(l == null)
-				l = formula.getRandomUnsatLit();
-			formula.announceSatLit(l);
-//			l.weight--;
-			l.lastModified = true;
-			l.opposite.lastModified = true;
-			for(ILiteral neibor: l.neighbors)
-				neibor.lastModified = false;
-			System.out.println(formula.unsatClas.size());
-			if(System.currentTimeMillis()-startTime > timeLimit)
-				break;
-		}
-		if(formula.unsatClas.size() == 0)
-			isSolved = true;
-		return isSolved;
 	}
 	
 	/**
@@ -138,15 +92,10 @@ public class Solver  {
  			System.out.println(file.getPath());
 			long begin = System.currentTimeMillis();
 			IFormula formula = solver.getFormulaFromCNFFile(file.getPath());
-			solver.getInitSolution(formula, RANDOM_COEF1);
-			boolean isSolved = solver.solveFormulaBasedOnInitSolution(formula, RANDOM_COEF2, TIME_LIMIT);
+			solver.getGroups(formula, RANDOM_COEF1);
+			
 			long time = System.currentTimeMillis()-begin;
 			System.out.println(time);
-			if(isSolved){
-				fw.write(file.getPath()+" "+time+" "+formula.unsatClas.size()+"\r\n");
-			}else{
-				fw.write(file.getPath()+" time out "+formula.unsatClas.size()+"\r\n");
-			}
 
  		}
 
