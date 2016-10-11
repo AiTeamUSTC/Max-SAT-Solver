@@ -3,6 +3,7 @@ package cs.ustc.MaxSATsolver;
 import java.util.List;
 import java.util.Set;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 
 
@@ -20,6 +21,9 @@ public class IFormula{
 	Set<IClause> satClas;
 	Set<IClause> unsatClas;
 	Set<ILiteral> unsatLits;
+	List<IVariable> visitedVars;
+	List<IVariable> unVisitedVars;
+	
 	
 
 
@@ -38,6 +42,8 @@ public class IFormula{
 		unsatLits = new HashSet<>(nbvars*2);
 		satClas = new HashSet<>(nbclauses);
 		unsatClas = new HashSet<>(nbclauses);
+		visitedVars = new ArrayList<>(nbvars);
+		unVisitedVars = new ArrayList<>(nbvars);
 	}
 	
 	/**
@@ -64,16 +70,26 @@ public class IFormula{
 	 *  初始化每个 variable 的邻居，并设置相应的 degree
 	 */
 	public void setVarsNeighbors(){
+		IVariable tmp = null;
 		for(IVariable var: variables){
 			for(ILiteral lit: var.lit.neighbors){
-				var.neighbors.add(this.getVariable(lit));
+				tmp = this.getVariable(lit);
+				if(!var.neighbors.contains(tmp)){
+					var.neighbors.add(tmp);
+				}
+					
 			}
 			for(ILiteral lit: var.oppositeLit.neighbors){
-				var.neighbors.add(this.getVariable(lit));
+				tmp = this.getVariable(lit);
+				if(!var.neighbors.contains(tmp)){
+					var.neighbors.add(tmp);
+				}
 			}
 			var.initDegree = var.neighbors.size();
 			var.degree = var.initDegree;
+
 		}
+		unVisitedVars.addAll(variables);
 		
 	}
 	
@@ -130,32 +146,38 @@ public class IFormula{
 		return solution;
 	}
 	
-//	/**
-//	 * get independent set 
-//	 * first, find vertexes set covers all edges
-//	 * then, the complementary set of all vertexes is independent set
-//	 * @return independent set
-//	 */
-//	public Set<IVariable> getIndependentGroup(double randomCoef){
-//		Set<IVariable> vertexCover = new HashSet<>();
-//		Set<IClause> coverEdges = new HashSet<>();
-//		Set<IVariable> independentSet = new HashSet<>(unVisitedVars);
-//		
-//		IVariable var;
-//		if(Math.random() < randomCoef)
-//			Collections.sort(unVisitedVars);
-//
-//		for(int i=0; i<unVisitedVars.size(); i++){
-//			if(coverEdges.size()==unVisitedClas.size())
-//				break;
-//			var = unVisitedVars.get(i);
-//			vertexCover.add(var);
-//			coverEdges.addAll(var.clauses);	
-//		}
-//		independentSet.removeAll(vertexCover);
-//		return independentSet;
-//		
-//	}
+	
+	/**
+	 * get independent set 
+	 * first, find vertexes set covers all edges
+	 * then, the complementary set of all vertexes is independent set
+	 * @return independent set
+	 */
+	public Set<IVariable> getIndependentGroup(double randomCoef){
+		List<IVariable> tmp = new ArrayList<>(unVisitedVars);
+
+		Set<IVariable> independentSet = new HashSet<>();
+		IVariable var;
+		while(!tmp.isEmpty()){
+			if(Math.random() < randomCoef){
+				var = Collections.min(tmp);
+			}else{
+				var = tmp.get((int)(Math.random() * tmp.size()));
+			}
+			independentSet.add(var);
+			tmp.remove(var);
+			tmp.removeAll(var.neighbors);
+		}
+		return independentSet;
+		
+	}
+	
+	
+	
+	public void removeGroupFromFormula(List<IVariable> group){
+		unVisitedVars.removeAll(group);
+		visitedVars.addAll(group);
+	}
 	
 	
 	

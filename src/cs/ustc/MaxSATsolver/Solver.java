@@ -7,7 +7,6 @@ package cs.ustc.MaxSATsolver;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.FileVisitResult;
@@ -17,9 +16,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
-import org.jgraph.graph.DefaultEdge;
-import org.jgrapht.UndirectedGraph;
-import org.jgrapht.graph.SimpleGraph;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook; 
 import org.apache.poi.ss.usermodel.Row; 
@@ -29,8 +25,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 public class Solver  {
 	static final int  MAX_ITERATIONS = 5;
-	static final double RANDOM_COEF1 = 0.6;
-	static final double RANDOM_COEF2 = 0.1;
+	static final double RANDOM_COEF1 = 0.1;
 	static final long TIME_LIMIT = 3*60*1000;
 	public Solver(){
 		
@@ -45,17 +40,20 @@ public class Solver  {
 	 */
 	public List<List<IVariable>> getGroups(IFormula f, double randomCoef) {
 		List<List<IVariable>> groups = new ArrayList<>();
-		UndirectedGraph<IVariable, DefaultEdge> graph = new SimpleGraph<>(DefaultEdge.class);
-		GraphTool.transFormulaToGraph(graph, f);
+//		UndirectedGraph<IVariable, DefaultEdge> graph = new SimpleGraph<>(DefaultEdge.class);
+//		
+//		GraphTool.transFormulaToGraph(graph, f);
+//		System.out.println(graph.edgeSet().size());
 		while(true){
 			List<IVariable> group = new ArrayList<>();
-			group.addAll(GraphTool.findIndependentSet(graph));
+//			group.addAll(GraphTool.findIndependentSet(graph));
+			group.addAll(f.getIndependentGroup(randomCoef));
 			//jump out while loop
 			if (group.isEmpty()){
 				break;
 			}
 			groups.add(group);
-			graph.removeAllVertices(group);
+			f.removeGroupFromFormula(group);
 		}
 		return groups;
 		
@@ -132,7 +130,7 @@ public class Solver  {
  			System.out.println(file.getPath());
 			long begin = System.currentTimeMillis();
 			IFormula formula = solver.getFormulaFromCNFFile(file.getPath());
-			List<List<IVariable>> groups = solver.getGroups(formula, RANDOM_COEF1);
+ 			List<List<IVariable>> groups = solver.getGroups(formula, RANDOM_COEF1);
 			solver.solveFormulaBasedOnGroups(formula,groups);
 			long time = System.currentTimeMillis()-begin;
 			System.out.println(time);
