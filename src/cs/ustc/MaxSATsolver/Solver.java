@@ -26,10 +26,10 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 
 public class Solver  {
-	static final int  MAX_ITERATIONS = 5000;
+	static final int  MAX_ITERATIONS = 20000;
 	static final double RANDOM_COEF_SOLUTION = 0.7;
 	static final double RANDOM_COEF_INDEPENDENTSET = 0.8;
-	static final double RANDOM_COEF_NEXTGROUP = 1;
+	static final double RANDOM_COEF_NEXTGROUP = 0;
 	static final long TIME_LIMIT = 3*60*1000;
 	
 	/**
@@ -122,11 +122,11 @@ public class Solver  {
 		while(iterations-- != 0){
 			solution.clear();
 			solution = this.solveFormulaBasedOnGroups(formula, groups, randomCoefSolution, randomCoefNextGroup);
-//			Collections.sort(solution);
-//			for(int i=0; i<solution.size(); i++){
-//				sb.append(solution.get(i).id>0 ? "1 ":"0 ");
-//			}
-//			sb.append("\r\n");
+			Collections.sort(solution);
+			for(int i=0; i<solution.size(); i++){
+				sb.append(solution.get(i).id>0 ? "1 ":"0 ");
+			}
+			sb.append("\r\n");
 			//增加未满足 clauses 的权重
 			formula.increaseLitsWeightinUnsatClas();
 			//找到更好的解，更新 bestSolution 
@@ -139,7 +139,7 @@ public class Solver  {
 			if(formula.minUnsatNum == 0)
 				break;
 		}
-//		fw.write(sb.toString());
+		fw.write(sb.toString());
 		return bestSolution;
 
 
@@ -232,9 +232,9 @@ public class Solver  {
 	    SimpleDateFormat sdf = new SimpleDateFormat("MMdd_HHmm");  
 	    String dataStr = sdf.format(dt);
 	    String outResultPath = args[1]+"results_"+dataStr+"_group_1.xls";
-//	    String outResultAnalysisPath = args[1]+"results_analysis_"+dataStr+".txt";
+	    String outResultAnalysisPath = args[1]+"results_analysis_"+dataStr+".txt";
 		
-//		fw = new FileWriter(new File(outResultAnalysisPath));
+		fw = new FileWriter(new File(outResultAnalysisPath));
  		Workbook wb = new HSSFWorkbook();
 		OutputStream os = null;
 		
@@ -264,7 +264,7 @@ public class Solver  {
 	 		int rowNum = 0;
 	 		
 	 		for(File file: files){
-//	 			fw.write(file.getName()+"\r\n");
+	 			fw.write(file.getName()+"\r\n");
 	 			r = sheet.createRow(rowNum++);
 				r.createCell(0).setCellValue(file.getName());
 	 			System.out.println(file.getPath());
@@ -277,12 +277,12 @@ public class Solver  {
 		 		groups = solver.getGroups(formula, RANDOM_COEF_INDEPENDENTSET);
 		 		solution = solver.iteratedSolveFormulaBasedOnGroups(formula, groups, 
 		 				MAX_ITERATIONS, RANDOM_COEF_SOLUTION, RANDOM_COEF_NEXTGROUP, fw);
-//		 		Collections.sort(solution);
-//		 		StringBuffer sb = new StringBuffer();
-//				for(int i=0; i<solution.size(); i++){
-//					sb.append(solution.get(i).id>0 ? "1 ":"0 ");
-//				}
-//				fw.write(sb.toString()+"\r\n");
+		 		Collections.sort(solution);
+		 		StringBuffer sb = new StringBuffer();
+				for(int i=0; i<solution.size(); i++){
+					sb.append(solution.get(i).id>0 ? "1 ":"0 ");
+				}
+				fw.write(sb.toString()+"\r\n");
 				long time = System.currentTimeMillis()-begin;
 				System.out.println(time);
 				r.createCell(1).setCellValue(formula.minUnsatNum);
