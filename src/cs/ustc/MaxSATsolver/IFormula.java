@@ -45,6 +45,7 @@ public class IFormula{
 		unsatClas = new HashSet<>(nbclauses);
 		visitedVars = new ArrayList<>(nbvars);
 		unVisitedVars = new ArrayList<>(nbvars);
+		minUnsatNum = nbclauses;
 	}
 	
 	/**
@@ -171,7 +172,7 @@ public class IFormula{
 		visitedVars.addAll(group);
 	}
 	
-	public void increaseLitsWeightinUnsatClas(){
+	synchronized public void increaseLitsWeightinUnsatClas(){
 		for(IClause c: unsatClas){
 			c.hardCoef++;
 			for(ILiteral l: c.literals)
@@ -218,7 +219,7 @@ public class IFormula{
 	 * @throws IOException 
 	 */
 	
-	public void announceSatLit(ILiteral lit){				
+	synchronized private void announceSatLit(ILiteral lit){				
 		for(IClause c: lit.getClas()){
 			if(!this.satLits.contains(lit))
 				c.satLitsNum++;
@@ -273,6 +274,12 @@ public class IFormula{
 	public void announceSatLits(List<ILiteral> lits){
 		for (ILiteral lit : lits) { 
 			announceSatLit(lit);
+		}
+	}
+	
+	synchronized public void updateMinUnsatNum(){
+		if(minUnsatNum > unsatClas.size()){
+			minUnsatNum = unsatClas.size();
 		}
 	}
 	

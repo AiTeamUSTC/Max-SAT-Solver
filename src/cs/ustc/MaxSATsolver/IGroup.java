@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.net.ssl.SSLException;
+
 /**
  * 
  * @ClassName: IGroup
@@ -21,13 +23,17 @@ public class IGroup implements Runnable{
 	List<ILiteral> solution;
 	Map<IGroup, Integer>  neighbors;
 	IFormula formula;
+	List<ILiteral> flipLits;
+	String id;
 	static final long LIMIT_TIME = 3*60*1000;  
 	
-	public IGroup(List<IVariable> agents, IFormula f){
+	public IGroup(List<IVariable> agents, IFormula f, String id){
 		this.agents = new ArrayList<>(agents); 
 		solution = new ArrayList<>(agents.size());
 		neighbors = new HashMap<>();
 		this.formula = f;
+		flipLits = new ArrayList<>();
+		this.id = id;
 	}
 	
 	
@@ -35,7 +41,7 @@ public class IGroup implements Runnable{
 	 * 求每个组对应最好的解
 	 * @param randomCoefSolution 采用贪婪的随机性大小
 	 */
-	public List<ILiteral> getSolution(double randomCoefSolution){
+	public List<ILiteral> getSolution(){
 		//构造每组的初始解，贪婪策略
 		if(solution.isEmpty()){
 			for(IVariable var: agents){	
@@ -74,41 +80,26 @@ public class IGroup implements Runnable{
 		return increasdeWeight - decreasedWeight;
 	} 
 
-	/**
-	 * 设置每个 group 的邻居， 两个 group 是邻居当且仅当组中 agent 出现在同一个 clause 中
-	 * 
-	 * @param groups 
-	 */
-	public static void initGroupNeighbors(List<IGroup> groups){
-		List<IVariable> tmp = new ArrayList<>();
-		List<IVariable> tmpCopy = new ArrayList<>();
-		IGroup groupTmp1 = null;
-		IGroup groupTmp2 = null;
-		for(int i=0; i<groups.size(); i++){
-			groupTmp1 = groups.get(i);
-			for(IVariable agent: groupTmp1.agents){
-				tmp.addAll(agent.neighbors);
-			}
-		
-			for(int j=i+1; j<groups.size(); j++){
-				tmpCopy.addAll(tmp);
-				groupTmp2 = groups.get(j);
-				tmpCopy.retainAll(groupTmp2.agents);
-				if(tmpCopy.size()>0){
-					groupTmp1.neighbors.put(groupTmp2, tmpCopy.size());
-					groupTmp2.neighbors.put(groupTmp1, tmpCopy.size());
-				}
-				tmpCopy.clear();
-			}
-			tmp.clear();
-		}
-	}
-	
-
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		
+		int repeatedCount = 0;
+		while(true){
+			flipLits.addAll(this.getSolution());
+			if(!flipLits.isEmpty()){
+				formula.announceSatLits(flipLits);
+			}else{
+				repeatedCount++;
+				if(repeatedCount > 100){
+					break;
+				}
+			}
+			formula.increaseLitsWeightinUnsatClas();
+			formula.updateMinUnsatNum();
+			System.out.println(id + " flips " + flipLits.size() +" variables");
+			System.out.println("formula minUnsatNum: "+formula.minUnsatNum);
+
+		}
 		
 	}
 	
