@@ -26,10 +26,10 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 
 public class Solver  {
-	static final int  MAX_ITERATIONS = 5000;
+	static final int  MAX_ITERATIONS = 20000;
 	static final double RANDOM_COEF_SOLUTION = 0.7;
 	static final double RANDOM_COEF_INDEPENDENTSET = 0.8;
-	static final double RANDOM_COEF_NEXTGROUP = 1;
+	static final double RANDOM_COEF_NEXTGROUP = 0;
 	static final long TIME_LIMIT = 3*60*1000;
 	
 	/**
@@ -42,7 +42,7 @@ public class Solver  {
 	public List<IGroup> getGroups(IFormula f, double randomCoefIndependentSet) {
 		List<IGroup> groups = new ArrayList<>();
 		while(true){
-			IGroup group = new IGroup(f.getIndependentGroup(randomCoefIndependentSet));
+			IGroup group = new IGroup(f.getIndependentGroup(randomCoefIndependentSet),f);
 			//jump out while loop
 			if (group.agents.isEmpty()){
 				break;
@@ -122,11 +122,11 @@ public class Solver  {
 		while(iterations-- != 0){
 			solution.clear();
 			solution = this.solveFormulaBasedOnGroups(formula, groups, randomCoefSolution, randomCoefNextGroup);
-//			Collections.sort(solution);
-//			for(int i=0; i<solution.size(); i++){
-//				sb.append(solution.get(i).id>0 ? "1 ":"0 ");
-//			}
-//			sb.append("\r\n");
+			Collections.sort(solution);
+			for(int i=0; i<solution.size(); i++){
+				sb.append(solution.get(i).id>0 ? "1 ":"0 ");
+			}
+			sb.append("\r\n");
 			//增加未满足 clauses 的权重
 			formula.increaseLitsWeightinUnsatClas();
 			//找到更好的解，更新 bestSolution 
@@ -139,7 +139,7 @@ public class Solver  {
 			if(formula.minUnsatNum == 0)
 				break;
 		}
-//		fw.write(sb.toString());
+		fw.write(sb.toString());
 		return bestSolution;
 
 
@@ -161,17 +161,15 @@ public class Solver  {
 			double randomCoefNextGroup)
 	{
 		IGroup.initGroupNeighbors(groups);
-		List<IGroup> tmpGroups = new ArrayList<>(groups);
 		List<ILiteral> solution = new ArrayList<>();
 		
 		//初始组
-		IGroup group = tmpGroups.get((int)(Math.random()*tmpGroups.size()));
+		IGroup group = groups.get((int)(Math.random()*groups.size()));
 		List<ILiteral> flipLits;
-		while(true){
 			
 			//若存在与所有组都不相关的组，则需要随机从剩下的组中选择一个组
 			if(group == null){
-				group = groups.get((int)(Math.random()*tmpGroups.size()));
+				group = groups.get((int)(Math.random()*groups.size()));
 			}
 			flipLits = group.getSolution(randomCoefSolution);
 			
@@ -179,26 +177,7 @@ public class Solver  {
 				formula.announceSatLits(flipLits);
 			}
 			solution.addAll(group.solution);
-			tmpGroups.remove(group);
-			
-			if(tmpGroups.isEmpty())
-				break;
-			if(Math.random() < randomCoefNextGroup){
-				//根据相关性寻找下一个组
-				int minValue = 0;
-				Iterator<Entry<IGroup, Integer>> it = group.neighbors.entrySet().iterator();
-				Map.Entry<IGroup, Integer> entry = null;
-				while(it.hasNext()){
-					entry = it.next();
-					if(entry.getValue() >= minValue){
-						group = entry.getKey();
-						minValue = entry.getValue();
-					}
-				}
-			}else{
-				group = tmpGroups.get((int)(Math.random()*tmpGroups.size()));
-			}	
-		}
+				
 		return solution;
 	}
 	
@@ -231,10 +210,10 @@ public class Solver  {
 	    FileWriter fw = null;
 	    SimpleDateFormat sdf = new SimpleDateFormat("MMdd_HHmm");  
 	    String dataStr = sdf.format(dt);
-	    String outResultPath = args[1]+"results_"+dataStr+"_group_1.xls";
-//	    String outResultAnalysisPath = args[1]+"results_analysis_"+dataStr+".txt";
+	    String outResultPath = args[1]+"results_"+dataStr+".xls";
+	    String outResultAnalysisPath = args[1]+"results_analysis_"+dataStr+".txt";
 		
-//		fw = new FileWriter(new File(outResultAnalysisPath));
+		fw = new FileWriter(new File(outResultAnalysisPath));
  		Workbook wb = new HSSFWorkbook();
 		OutputStream os = null;
 		
@@ -264,30 +243,39 @@ public class Solver  {
 	 		int rowNum = 0;
 	 		
 	 		for(File file: files){
-//	 			fw.write(file.getName()+"\r\n");
+	 			fw.write(file.getName()+"\r\n");
 	 			r = sheet.createRow(rowNum++);
 				r.createCell(0).setCellValue(file.getName());
 	 			System.out.println(file.getPath());
-	 			
-				long begin = System.currentTimeMillis();
-				IFormula formula = solver.getFormulaFromCNFFile(file.getPath());
-				List<IGroup> groups = null;
-				List<ILiteral> solution = null;
+	 			int runsNum = 0;
+//	 			int total = 0;
+//	 			long totalTime = 0;
+				while(++runsNum <= 1){
+					long begin = System.currentTimeMillis();
+					IFormula formula = solver.getFormulaFromCNFFile(file.getPath());
+					List<IGroup> groups = null;
+					List<ILiteral> solution = null;
+			 		groups = solver.getGroups(formula, RANDOM_COEF_INDEPENDENTSET);
+			 		solution = solver.iteratedSolveFormulaBasedOnGroups(formula, groups, 
+			 				MAX_ITERATIONS, RANDOM_COEF_SOLUTION, RANDOM_COEF_NEXTGROUP, fw);
+			 		Collections.sort(solution);
+			 		StringBuffer sb = new StringBuffer();
+					for(int i=0; i<solution.size(); i++){
+						sb.append(solution.get(i).id>0 ? "1 ":"0 ");
+					}
+					fw.write(sb.toString()+"\r\n");
+					long time = System.currentTimeMillis()-begin;
+					r.createCell(runsNum).setCellValue(formula.minUnsatNum);
+					r.createCell(runsNum+1).setCellValue(time);
+//					total+=formula.minUnsatNum;
+					System.out.println(formula.minUnsatNum);
+					System.out.println(time);
+//					totalTime += time;
+				}
+//				r.createCell(runsNum).setCellValue((double)total/(double)30);
+//				r.createCell(runsNum+1).setCellValue(totalTime/30);
 				
-		 		groups = solver.getGroups(formula, RANDOM_COEF_INDEPENDENTSET);
-		 		solution = solver.iteratedSolveFormulaBasedOnGroups(formula, groups, 
-		 				MAX_ITERATIONS, RANDOM_COEF_SOLUTION, RANDOM_COEF_NEXTGROUP, fw);
-//		 		Collections.sort(solution);
-//		 		StringBuffer sb = new StringBuffer();
-//				for(int i=0; i<solution.size(); i++){
-//					sb.append(solution.get(i).id>0 ? "1 ":"0 ");
-//				}
-//				fw.write(sb.toString()+"\r\n");
-				long time = System.currentTimeMillis()-begin;
-				System.out.println(time);
-				r.createCell(1).setCellValue(formula.minUnsatNum);
-				r.createCell(2).setCellValue(time);
-				System.out.println(formula.minUnsatNum);
+		
 	 		}
 			
 		}

@@ -16,15 +16,18 @@ import java.util.Map;
  * @date: 2016年10月19日 上午8:45:23
  *
  */
-public class IGroup {
+public class IGroup implements Runnable{
 	List<IVariable> agents;
 	List<ILiteral> solution;
 	Map<IGroup, Integer>  neighbors;
+	IFormula formula;
+	static final long LIMIT_TIME = 3*60*1000;  
 	
-	public IGroup(List<IVariable> agents){
+	public IGroup(List<IVariable> agents, IFormula f){
 		this.agents = new ArrayList<>(agents); 
 		solution = new ArrayList<>(agents.size());
 		neighbors = new HashMap<>();
+		this.formula = f;
 	}
 	
 	
@@ -40,8 +43,6 @@ public class IGroup {
 			}
 			return solution;
 		}
-		
-		
 		List<ILiteral> flipLits = new ArrayList<>();
 		Collections.sort(agents);
 		for(IVariable var: agents){
@@ -101,6 +102,14 @@ public class IGroup {
 			}
 			tmp.clear();
 		}
+	}
+	
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		
+		
 	}
 	
 	
