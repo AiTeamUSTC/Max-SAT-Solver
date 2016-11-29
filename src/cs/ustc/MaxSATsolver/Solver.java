@@ -68,6 +68,7 @@ public class Solver  {
 	public List<ILiteral> solveFormulaBasedOnGroups(IFormula formula, List<IGroup> groups) throws InterruptedException{
 		List<ILiteral> solution = new ArrayList<>();
 		List<Thread> threads = new ArrayList<>();
+		
 		for(IGroup group: groups){
 			threads.add(new Thread(group));
 		}
@@ -75,9 +76,10 @@ public class Solver  {
 			t.start();
 		boolean flag = true;
 		while(flag){
+			flag = false;
 			for(Thread t:threads)
-				if (!t.isAlive()) 
-					flag = false;
+				if (t.isAlive()) 
+					flag = true;
 		}
 		for(IGroup g: groups)
 			solution.addAll(g.solution);
@@ -114,10 +116,10 @@ public class Solver  {
 	    FileWriter fw = null;
 	    SimpleDateFormat sdf = new SimpleDateFormat("MMdd_HHmm");  
 	    String dataStr = sdf.format(dt);
-	    String outResultPath = args[1]+"results_"+dataStr+"_group_1.xls";
-	    String outResultAnalysisPath = args[1]+"results_analysis_"+dataStr+".txt";
+	    String outResultPath = args[1]+"results_random_flipn_updateweight"+dataStr+".xls";
+//	    String outResultAnalysisPath = args[1]+"results_analysis_"+dataStr+".txt";
 		
-		fw = new FileWriter(new File(outResultAnalysisPath));
+//		fw = new FileWriter(new File(outResultAnalysisPath));
  		Workbook wb = new HSSFWorkbook();
 		OutputStream os = null;
 		
@@ -147,7 +149,7 @@ public class Solver  {
 	 		int rowNum = 0;
 	 		
 	 		for(File file: files){
-	 			fw.write(file.getName()+"\r\n");
+//	 			fw.write(file.getName()+"\r\n");
 	 			r = sheet.createRow(rowNum++);
 				r.createCell(0).setCellValue(file.getName());
 	 			System.out.println(file.getPath());
@@ -160,16 +162,17 @@ public class Solver  {
 		 		groups = solver.getGroups(formula, RANDOM_COEF_INDEPENDENTSET);
 		 		solution = solver.solveFormulaBasedOnGroups(formula, groups);
 		 		Collections.sort(solution);
-		 		StringBuffer sb = new StringBuffer();
-				for(int i=0; i<solution.size(); i++){
-					sb.append(solution.get(i).id>0 ? "1 ":"0 ");
-				} 
-				fw.write(sb.toString()+"\r\n");
+//		 		StringBuffer sb = new StringBuffer();
+//				for(int i=0; i<solution.size(); i++){
+//					sb.append(solution.get(i).id>0 ? "1 ":"0 ");
+//				} 
+//				fw.write(sb.toString()+"\r\n");
 				long time = System.currentTimeMillis()-begin;
 				System.out.println(time);
 				r.createCell(1).setCellValue(formula.minUnsatNum);
 				r.createCell(2).setCellValue(time);
-				System.out.println(formula.minUnsatNum);
+				System.out.println(solution.toString());
+//				System.out.println(formula.minUnsatNum);
 	 		}
 			
 		}

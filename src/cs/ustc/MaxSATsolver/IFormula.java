@@ -129,6 +129,7 @@ public class IFormula{
 	 *  set literals
 	 */
 	public void setVariables(){
+		unsatClas.addAll(clauses);
 		for (int i = 0; i < vars.length; i++) {
 			if(vars[i]!=null){
 				vars[i].unsatClas.addAll(vars[i].getClas());
@@ -175,41 +176,15 @@ public class IFormula{
 	synchronized public void increaseLitsWeightinUnsatClas(){
 		for(IClause c: unsatClas){
 			c.hardCoef++;
-			for(ILiteral l: c.literals)
+			for(ILiteral l: c.literals){
 				l.weight++;
-		}
-	}
-	
-	
-	public ILiteral getMaxWeightFlipLit(){
-		List<ILiteral> tmp = new ArrayList<>(unsatLits);
-		ILiteral lit = null;
-		while(tmp != null){
-			lit = Collections.max(tmp);
-			if(! lit.lastModified && lit.unsatClas.size() > 0){
-				break;
-			}else{
-				tmp.remove(lit);
-				lit = null;
+				if(l.weight > (nbClas/nbVar)*20)
+					l.weight = nbClas/nbVar;
 			}
 		}
-		return lit;
 	}
 	
-	
-	public ILiteral getRandomFlipLit(){
-		List<ILiteral> tmp = new ArrayList<>(unsatLits);
-		ILiteral lit = null;
-		while(tmp != null){
-			lit = tmp.get((int)(Math.random()*tmp.size()));
-			if(! lit.lastModified){
-				break;
-			}else{
-				tmp.remove(lit);
-			}
-		}
-		return lit;
-	}
+
 		
 	
 	/**
@@ -277,10 +252,12 @@ public class IFormula{
 		}
 	}
 	
-	synchronized public void updateMinUnsatNum(){
+	synchronized public boolean updateMinUnsatNum(){
 		if(minUnsatNum > unsatClas.size()){
 			minUnsatNum = unsatClas.size();
+			return true;
 		}
+		return false;
 	}
 	
 	public void resetFormula(){

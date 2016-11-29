@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.DoubleUnaryOperator;
 
 import javax.net.ssl.SSLException;
 
@@ -44,24 +45,27 @@ public class IGroup implements Runnable{
 	public List<ILiteral> getSolution(){
 		//构造每组的初始解，贪婪策略
 		if(solution.isEmpty()){
-			for(IVariable var: agents){	
-				solution.add(var.lit.unsatClas.size() > var.oppositeLit.unsatClas.size() ? var.lit : var.oppositeLit);
+			for(IVariable var: agents){
+//				if(Math.random() > 1){
+//					solution.add(var.lit.unsatClas.size() > var.oppositeLit.unsatClas.size() ? var.lit : var.oppositeLit);			
+//				}else{
+					solution.add(var.lit);
+//				}
 			}
 			return solution;
 		}
 		List<ILiteral> flipLits = new ArrayList<>();
 		Collections.sort(agents);
+		int idx = 0;
 		for(IVariable var: agents){
-			if(flipVariable(var) > 0){
+			if(flipVariable(var) > 0){			
 				if(solution.contains(var.lit)){
-					solution.remove(var.lit);
-					solution.add(var.oppositeLit);
 					flipLits.add(var.oppositeLit);
 				}else{
-					solution.remove(var.oppositeLit);
-					solution.add(var.lit);
 					flipLits.add(var.lit);
 				}
+				solution.remove(flipLits.get(idx).opposite);
+				solution.add(flipLits.get(idx++));
 				break;
 			}
 		}
@@ -88,17 +92,17 @@ public class IGroup implements Runnable{
 			flipLits.addAll(this.getSolution());
 			if(!flipLits.isEmpty()){
 				formula.announceSatLits(flipLits);
-			}else{
-				repeatedCount++;
-				if(repeatedCount > 100){
-					break;
-				}
 			}
 			formula.increaseLitsWeightinUnsatClas();
-			formula.updateMinUnsatNum();
-			System.out.println(id + " flips " + flipLits.size() +" variables");
-			System.out.println("formula minUnsatNum: "+formula.minUnsatNum);
-
+			if(! formula.updateMinUnsatNum()){
+				if(++repeatedCount > 10000000)
+					break;
+			}else{
+				repeatedCount = 0;
+//				System.out.println(id + " flips " + flipLits.size() +" variables");
+				System.out.println("o "+formula.minUnsatNum);
+			}
+			flipLits.clear();
 		}
 		
 	}
